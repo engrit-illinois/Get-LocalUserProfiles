@@ -131,7 +131,7 @@ function Get-LocalUserProfiles {
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
 			$output = "`n$Indent-----------------------------`n"
-			$output += "$($Indent)Profiles for $($comp.Name):"
+			$output += "$($Indent)Profiles for `"$($comp.Name)`":"
 			$profiles | Out-String -Stream | ForEach { $output += "`n$Indent$Indent$_" }
 			$output += "`n$Indent-----------------------------`n"
 			log $output -NoTS
@@ -228,8 +228,11 @@ function Get-LocalUserProfiles {
 			$comp | Add-Member -NotePropertyName "_YoungestProfileDate" -NotePropertyValue $youngestProfileDate -Force
 			$comp | Add-Member -NotePropertyName "_YoungestProfilePath" -NotePropertyValue $youngestProfilePath -Force
 			
+			$diff = New-TimeSpan -Start $oldestProfileDate -End $youngestProfileDate
+			$comp | Add-Member -NotePropertyName "_LargestProfileTimeSpan" -NotePropertyValue $diff -Force
+			
 			# Print out a preview of the interesting info for this comp
-			log ($comp | Select "_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Out-String) -NoTS
+			#log ($comp | Select "_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Out-String) -NoTS
 			
 			log "Done with `"$compName`"." -L 1 -V 2
 		}
@@ -240,13 +243,13 @@ function Get-LocalUserProfiles {
 	
 	function Print-Profiles($comps) {
 		log "Summary of profiles from all computers:"
-		log ($comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Sort "_OldestProfileDate",Name | Format-Table | Out-String) -NoTS
+		log ($comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name | Format-Table | Out-String) -NoTS
 	}
 	
 	function Export-Profiles($comps) {
 		if($Csv) {
 			log "-Csv was specified. Exporting data to `"$CsvPath`"..."
-			$csvComps = $comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath"
+			$csvComps = $comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan"
 			$csvComps = $csvComps | Sort "_OldestProfileDate",Name
 			$csvComps | Export-Csv -NoTypeInformation -Encoding "Ascii" -Path $CsvPath
 		}
