@@ -33,6 +33,7 @@ else {
 	log "oldestDate = $oldestDate"
 	
 	log "Getting profiles..."
+	#$profiles = Get-WMIObject -ClassName "Win32_UserProfile"
 	$profiles = Get-CIMInstance -ClassName "Win32_UserProfile" -OperationTimeoutSec 300
 	
 	if(!$profiles) {
@@ -71,10 +72,14 @@ else {
 		}
 		
 		log "Deleting remaining profiles..."
+		$profiles = $profiles | Sort LocalPath
 		foreach($profile in $profiles) {
 			log "    Deleting profile: `"$($profile.LocalPath)`"..."
 			try {
-				$profile.Delete()
+				# Delete() method works with Get-WMIObject, but not with Get-CIMInstance
+				# https://www.reddit.com/r/PowerShell/comments/7qu9dg/inconsistent_results_with_calling_win32/
+				#$profile.Delete()
+				$profile | Remove-CIMInstance
 				log "        Profile deleted."
 			}
 			catch {
