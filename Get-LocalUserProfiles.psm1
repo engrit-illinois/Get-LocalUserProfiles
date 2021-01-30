@@ -227,6 +227,7 @@ function Get-LocalUserProfiles {
 			$comp | Add-Member -NotePropertyName "_OldestProfilePath" -NotePropertyValue $oldestProfilePath -Force
 			$comp | Add-Member -NotePropertyName "_YoungestProfileDate" -NotePropertyValue $youngestProfileDate -Force
 			$comp | Add-Member -NotePropertyName "_YoungestProfilePath" -NotePropertyValue $youngestProfilePath -Force
+			$comp | Add-Member -NotePropertyName "_NumberOfProfiles" -NotePropertyValue @($comp._Profiles).count -Force
 			
 			$diff = New-TimeSpan -Start $oldestProfileDate -End $youngestProfileDate
 			$diffFormatted = "{0:G}" -f $diff
@@ -244,13 +245,13 @@ function Get-LocalUserProfiles {
 	
 	function Print-Profiles($comps) {
 		log "Summary of profiles from all computers:"
-		log ($comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name | Format-Table | Out-String) -NoTS
+		log ($comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name | Format-Table | Out-String) -NoTS
 	}
 	
 	function Export-Profiles($comps) {
 		if($Csv) {
 			log "-Csv was specified. Exporting data to `"$CsvPath`"..."
-			$csvComps = $comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan"
+			$csvComps = $comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan"
 			$csvComps = $csvComps | Sort "_OldestProfileDate",Name
 			$csvComps | Export-Csv -NoTypeInformation -Encoding "Ascii" -Path $CsvPath
 		}
