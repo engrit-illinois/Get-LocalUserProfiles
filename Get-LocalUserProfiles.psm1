@@ -133,7 +133,7 @@ function Get-LocalUserProfiles {
 			$output = "`n$Indent-----------------------------`n"
 			$output += "$($Indent)Profiles for $($comp.Name):`n"
 			$output += ($profiles | Out-String -Stream | ForEach { Write-Output "$Indent$_`n" })
-			$indent += "$Indent-----------------------------`n"
+			$output += "$Indent-----------------------------`n"
 			log $output
 		}
 	}
