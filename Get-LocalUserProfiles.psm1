@@ -30,7 +30,7 @@ function Get-LocalUserProfiles {
 		# Might be all kinds of weird with asynchronous jobs
 		[switch]$PrintProfilesInRealtime,
 		
-		[string]$Indent = "    "
+		[string]$Indent = "        "
 	)
 	
 	function log {
@@ -115,11 +115,11 @@ function Get-LocalUserProfiles {
 
 	function Get-ProfilesFrom($comp) {
 		$compName = $comp.Name
-		log "Getting profiles from `"$compName`"..."
+		log "Getting profiles from `"$compName`"..." -L 1
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile"
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
 		Print-ProfilesFrom($comp)
-		log "Done getting profiles from `"$compname`"." -V 2
+		log "Done getting profiles from `"$compname`"." -L 1 -V 2
 		$comp
 	}
 	
