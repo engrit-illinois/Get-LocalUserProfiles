@@ -120,12 +120,12 @@ function Get-LocalUserProfiles {
 		log "Getting profiles from `"$compName`"..." -L 1
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile"
 		
-		# Ignore system root profile
+		# Ignore system root profile by default
 		if(!$IncludeRootProfiles) {
 			$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
 		}
 		
-		log "Found $($profiles.count) profiles." -L 2 -V 1
+		log "Found $(@($profiles).count) profiles." -L 2 -V 1
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
 		Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"." -L 1 -V 2
