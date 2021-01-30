@@ -257,7 +257,7 @@ function Get-LocalUserProfiles {
 		$comps = Munge-Profiles $comps
 		Export-Profiles $comps
 		Print-Profiles $comps
-		$comps
+		#$comps
 	}
 	
 	Do-Stuff
