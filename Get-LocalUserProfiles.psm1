@@ -131,10 +131,10 @@ function Get-LocalUserProfiles {
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
 			$output = "`n$Indent-----------------------------`n"
-			$output += "$($Indent)Profiles for $($comp.Name):`n"
-			$output += ($profiles | Out-String -Stream | ForEach { Write-Output "$Indent$_`n" })
+			$output += "$($Indent)Profiles for $($comp.Name):"
+			$output += ($profiles | Out-String -Stream | ForEach { Write-Output "`n$Indent$_" })
 			$output += "$Indent-----------------------------`n"
-			log $output
+			log $output -NoTS
 		}
 	}
 	
@@ -229,7 +229,7 @@ function Get-LocalUserProfiles {
 			$comp | Add-Member -NotePropertyName "_YoungestProfilePath" -NotePropertyValue $youngestProfilePath -Force
 			
 			# Print out a preview of the interesting info for this comp
-			log ($comp | Select "_YoungestProfilePath","_YoungestProfileDate","_OldestProfilePath","_OldestProfileDate" | Out-String)
+			log ($comp | Select "_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Out-String) -NoTS
 			
 			log "Done with `"$compName`"." -L 1 -V 2
 		}
@@ -239,7 +239,8 @@ function Get-LocalUserProfiles {
 	}
 	
 	function Print-Profiles($comps) {
-		log ($comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Sort "_OldestProfileDate",Name | Format-Table | Out-String)
+		log "Summary of profiles from all computers:"
+		log ($comps | Select Name,"_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Sort "_OldestProfileDate",Name | Format-Table | Out-String) -NoTS
 	}
 	
 	function Export-Profiles($comps) {
@@ -255,8 +256,8 @@ function Get-LocalUserProfiles {
 		$comps = Get-Comps $Computers
 		$comps = Get-Profiles $comps
 		$comps = Munge-Profiles $comps
-		Export-Profiles $comps
 		Print-Profiles $comps
+		Export-Profiles $comps
 		#$comps
 	}
 	
