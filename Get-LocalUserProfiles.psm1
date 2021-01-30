@@ -116,7 +116,7 @@ function Get-LocalUserProfiles {
 	function Get-ProfilesFrom($comp) {
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..."
-		$profiles = Get-WmiObject -ComputerName $compName -Class "Win32_UserProfile"
+		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile"
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
 		Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"." -V 2
@@ -126,19 +126,14 @@ function Get-LocalUserProfiles {
 	function Print-ProfilesFrom($comp) {
 		if($PrintProfilesInRealtime) {
 			# Limit output to relevant info
-			$profiles = $comp._Profiles | Select `
-				LocalPath, `
-				@{ Expression={$_.ConvertToDateTime($_.LastUseTime)}; Label="LastUseTime" }
-				
-			$profiles = $profiles | Sort LastUseTime
+			$profiles = $comp._Profiles | Select LocalPath,LastUseTime | Sort LastUseTime
 			
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
 			$output = "`n$Indent-----------------------------`n"
 			$output += "$($Indent)Profiles for $($comp.Name):`n`n"
 			$output += ($profiles | Out-String -Stream | ForEach { Write-Output "$Indent$_`n" })
-			$indent = "$Indent"
-			$output += "$Indent-----------------------------`n"
+			$indent = "$Indent-----------------------------`n"
 			log $output
 		}
 	}
@@ -214,11 +209,6 @@ function Get-LocalUserProfiles {
 			$youngestProfilePath = "unknown"
 			
 			foreach($profile in $comp._Profiles) {
-				# Backup original LastUseTime and convert original to readable format
-				$profile._OriginalLastUseTime = $profile.LastUseTime
-				$profile.LastUseTime = ($profile.LastUseTime).ConvertToDateTime($profile.LastUseTime)
-				
-				# Keep tracking youngest and oldest profiles
 				if($profile.LastUseTime -lt $oldestProfileDate) {
 					$oldestProfileDate = $profile.LastUseTime
 					$oldestProfilePath = $profile.LocalPath
