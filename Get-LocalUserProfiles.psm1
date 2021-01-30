@@ -135,7 +135,7 @@ function Get-LocalUserProfiles {
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
 			$output = "`n$Indent-----------------------------`n"
-			$output += "$IndentProfiles for $($comp.Name):`n`n"
+			$output += "$($Indent)Profiles for $($comp.Name):`n`n"
 			$output += ($profiles | Out-String -Stream | ForEach { Write-Output "$Indent$_`n" })
 			$indent = "$Indent"
 			$output += "$Indent-----------------------------`n"
