@@ -103,7 +103,7 @@ function Get-LocalUserProfiles {
 		
 		$comps = @()
 		foreach($name in @($compNames)) {
-			$comp = Get-ADComputer -Filter "name -like '$query'" -SearchBase $OUDN
+			$comp = Get-ADComputer -Filter "name -like '$name'" -SearchBase $OUDN
 			$comps += $comp
 		}
 		$list = Get-CompNameString $comps
