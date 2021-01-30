@@ -28,7 +28,7 @@ function Quit($msg) {
 	log "Quitting with message: `"$msg`"."
 	Write-Output $msg
 	exit
-)
+}
 
 $profilesCount = 0
 $profilesAttempted = 0
