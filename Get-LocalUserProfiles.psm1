@@ -115,7 +115,7 @@ function Get-LocalUserProfiles {
 
 	function Get-ProfilesFrom($comp) {
 		$compName = $comp.Name
-		log "Getting profiles from `"$compName`""
+		log "Getting profiles from `"$compName`"..."
 		$profiles = Get-WmiObject -ComputerName $compName -Class "Win32_UserProfile"
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
 		Print-ProfilesFrom($comp)
@@ -125,11 +125,18 @@ function Get-LocalUserProfiles {
 	
 	function Print-ProfilesFrom($comp) {
 		if($PrintProfilesInRealtime) {
+			# Limit output to relevant info
+			$profiles = $comp._Profiles | Select `
+				LocalPath, `
+				@{ Expression={$_.ConvertToDateTime($_.LastUseTime)}; Label="LastUseTime" }
+				
+			$profiles = $profiles | Sort LastUseTime
+			
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
 			$output = "`n$Indent-----------------------------`n"
 			$output += "$IndentProfiles for $($comp.Name):`n`n"
-			$output += ($comp._Profiles | Sort LastUseTime | Out-String -Stream | ForEach { Write-Output "$Indent$_" })
+			$output += ($profiles | Out-String -Stream | ForEach { Write-Output "$Indent$_" })
 			$indent = "$Indent"
 			$output += "$Indent-----------------------------`n"
 			log $output
