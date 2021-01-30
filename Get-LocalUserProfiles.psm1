@@ -30,7 +30,7 @@ function Get-LocalUserProfiles {
 		# Might be all kinds of weird with asynchronous jobs
 		[switch]$PrintProfilesInRealtime,
 		
-		[string]$Indent = "        ",
+		[string]$Indent = "    ",
 		
 		[switch]$ReturnObject
 	)
@@ -119,6 +119,7 @@ function Get-LocalUserProfiles {
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..." -L 1
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile"
+		log "Found $($profiles.count) profiles." -L 2 -V 2
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
 		Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"." -L 1 -V 2
@@ -132,10 +133,10 @@ function Get-LocalUserProfiles {
 			
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
-			$output = "`n$Indent-----------------------------`n"
-			$output += "$($Indent)Profiles for `"$($comp.Name)`":"
-			$profiles | Out-String -Stream | ForEach { $output += "`n$Indent$Indent$_" }
-			$output += "`n$Indent-----------------------------`n"
+			$output = "`n$Indent$Indent-----------------------------`n"
+			$output += "$($Indent)$($Indent)Profiles for `"$($comp.Name)`":"
+			$profiles | Out-String -Stream | ForEach { $output += "`n$Indent$Indent$Indent$_" }
+			$output += "`n$Indent$Indent-----------------------------`n"
 			log $output -NoTS
 		}
 	}
@@ -276,7 +277,7 @@ function Get-LocalUserProfiles {
 		
 		Print-Profiles $outputComps
 		Export-Profiles $outputComps
-		ReturnComps $outputComps
+		Return-Comps $outputComps
 	}
 	
 	Do-Stuff
