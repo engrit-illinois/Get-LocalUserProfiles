@@ -57,6 +57,7 @@ else {
 			log "-ExcludedUsers was specified: `"$ExcludedUsers`""
 			
 			$users = $ExcludedUsers.Split(",")
+			$users = $users.Replace("`"","")
 			log "    users: $users"
 			
 			log "    Filtering out excluded users..."
