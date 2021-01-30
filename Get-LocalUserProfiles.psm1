@@ -126,7 +126,7 @@ function Get-LocalUserProfiles {
 	function Print-ProfilesFrom($comp) {
 		if($PrintProfilesInRealtime) {
 			# Limit output to relevant info
-			$profiles = $comp._Profiles | Select LocalPath,LastUseTime | Sort LastUseTime
+			$profiles = $comp._Profiles | Select LocalPath,LastUseTime | Sort LastUseTime,Name
 			
 			# Build a string to output all at once, so individual lines don't end up getting mixed up
 			# with lines from other asynchronous jobs
@@ -229,10 +229,15 @@ function Get-LocalUserProfiles {
 			$comp | Add-Member -NotePropertyName "_YoungestProfilePath" -NotePropertyValue $youngestProfilePath -Force
 			
 			# Print out a preview of the interesting info for this comp
+			$oldestString = ""
+			$comp | Select "_OldestProfilePath","_OldestProfileDate" | Out-String -Stream | ForEach { $oldestString += "$Indent$Indent$_`n" }
 			log "Oldest:" -L 2
-			log ($comp | Select "_OldestProfilePath","_OldestProfileDate" | Out-String -Stream | ForEach { Write-Output "$Indent$Indent$_" })
+			log $oldestString
+			
+			$youngestString = ""
+			$comp | Select "_YoungestProfilePath","_YoungestProfileDate" | Out-String -Stream | ForEach { $youngestString += "$Indent$Indent$_`n" }
 			log "    Youngest:" -L 2
-			log ($comp | Select "_YoungestProfilePath","_YoungestProfileDate" | Out-String -Stream | ForEach { Write-Output "$Indent$Indent$_" })
+			log $youngestString
 			
 			log "Done with `"$compName`"." -L 1 -V 2
 		}
