@@ -78,7 +78,7 @@ else {
 			try {
 				# Delete() method works with Get-WMIObject, but not with Get-CIMInstance
 				# https://www.reddit.com/r/PowerShell/comments/7qu9dg/inconsistent_results_with_calling_win32/
-				#$profile.Delete()
+				$profile.Delete()
 				$profile | Remove-CIMInstance
 				log "        Profile deleted."
 			}
