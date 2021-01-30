@@ -14,7 +14,7 @@ function Get-LocalUserProfiles {
 		[string]$LogPath = "c:\engrit\logs\Get-LocalUserProfiles_$(Get-Date -Format `"yyyy-MM-dd_HH-mm-ss`").log",
 		
 		[switch]$Csv,
-		[string]$CsvPath = "c:\engrit\logs\Get-LocalUserProfiles_$(Get-Date -Format `"yyyy-MM-dd_HH-mm-ss`").csv"
+		[string]$CsvPath = "c:\engrit\logs\Get-LocalUserProfiles_$(Get-Date -Format `"yyyy-MM-dd_HH-mm-ss`").csv",
 		
 		[int]$Verbosity = 0,
 		
