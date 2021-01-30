@@ -195,7 +195,7 @@ function Get-LocalUserProfiles {
 		
 		foreach($comp in $comps) {
 			$compName = $comp.Name
-			log "$compName" -L 1
+			log "$compName" -L 1 -V 2
 			
 			# Ignore system root profile
 			if(!$IncludeRootProfiles) {
@@ -229,7 +229,8 @@ function Get-LocalUserProfiles {
 			$comp | Add-Member -NotePropertyName "_YoungestProfilePath" -NotePropertyValue $youngestProfilePath -Force
 			
 			$diff = New-TimeSpan -Start $oldestProfileDate -End $youngestProfileDate
-			$comp | Add-Member -NotePropertyName "_LargestProfileTimeSpan" -NotePropertyValue $diff -Force
+			$diffFormatted = "{0:G}" -f $diff
+			$comp | Add-Member -NotePropertyName "_LargestProfileTimeSpan" -NotePropertyValue $diffFormatted -Force
 			
 			# Print out a preview of the interesting info for this comp
 			#log ($comp | Select "_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath" | Out-String) -NoTS
