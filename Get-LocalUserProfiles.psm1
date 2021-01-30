@@ -30,7 +30,7 @@ function Get-LocalUserProfiles {
 		# Might be all kinds of weird with asynchronous jobs
 		[switch]$PrintProfilesInRealtime,
 		
-		[int]$Indent = "    "
+		[string]$Indent = "    "
 	)
 	
 	function log {
