@@ -17,7 +17,7 @@ $log = "c:\engrit\logs\Remove-LocalUserProfiles_MECM_$ts.log"
 function log($msg) {
 	$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss:ffff"
 	$msg = "[$ts] $msg"
-	Write-Host $msg
+	#Write-Host $msg
 	if(!(Test-Path -PathType leaf -Path $log)) {
 		New-Item -ItemType File -Force -Path $log | Out-Null
 	}
