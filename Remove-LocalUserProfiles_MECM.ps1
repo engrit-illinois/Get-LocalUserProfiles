@@ -1,5 +1,5 @@
-# https://gallery.technet.microsoft.com/scriptcenter/Remove-Old-Local-User-080438f6#content
-# https://gallery.technet.microsoft.com/scriptcenter/How-to-delete-user-d86ffd3c/view/Discussions/0
+# Documentation home: https://github.com/engrit-illinois/Get-LocalUserProfiles
+# By mseng3
 
 param(
 	[Parameter(Mandatory=$true)]

@@ -78,3 +78,5 @@ This module was based closely on various scripts written for the purposes of del
 
 # Notes
 - By mseng3
+- `Remove-LocalUserProfiles.psm1` is an unedited copy of the source inspiration scripts mentioned in the credits section. For reference only. Do not use this.
+- `Remove-LocalUserProfiles_MECM.ps1` is a completely re-written, non-module version of the source scripts mentioned above, which is compatible with the MECM Scripts feature, and has been tested. It is currently in MECM as a script named `Delete local user profiles older than X days`.
