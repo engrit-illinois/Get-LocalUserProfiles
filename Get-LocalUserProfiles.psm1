@@ -30,7 +30,9 @@ function Get-LocalUserProfiles {
 		# Might be all kinds of weird with asynchronous jobs
 		[switch]$PrintProfilesInRealtime,
 		
-		[string]$Indent = "        "
+		[string]$Indent = "        ",
+		
+		[switch]$ReturnObject
 	)
 	
 	function log {
@@ -245,15 +247,23 @@ function Get-LocalUserProfiles {
 	
 	function Print-Profiles($comps) {
 		log "Summary of profiles from all computers:"
-		log ($comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name | Format-Table | Out-String) -NoTS
+		log ($comps | Format-Table | Out-String) -NoTS
 	}
 	
 	function Export-Profiles($comps) {
 		if($Csv) {
 			log "-Csv was specified. Exporting data to `"$CsvPath`"..."
-			$csvComps = $comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan"
-			$csvComps = $csvComps | Sort "_OldestProfileDate",Name
-			$csvComps | Export-Csv -NoTypeInformation -Encoding "Ascii" -Path $CsvPath
+			$comps | Export-Csv -NoTypeInformation -Encoding "Ascii" -Path $CsvPath
+		}
+	}
+	
+	function Get-OutputComps($comps) {
+		$comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name
+	}
+	
+	function Return-Comps($comps) {
+		if($ReturnObject) {
+			$comps
 		}
 	}
 
@@ -261,9 +271,12 @@ function Get-LocalUserProfiles {
 		$comps = Get-Comps $Computers
 		$comps = Get-Profiles $comps
 		$comps = Munge-Profiles $comps
-		Print-Profiles $comps
-		Export-Profiles $comps
-		#$comps
+		
+		$outputComps = Get-OutputComps $comps
+		
+		Print-Profiles $outputComps
+		Export-Profiles $outputComps
+		ReturnComps $outputComps
 	}
 	
 	Do-Stuff
