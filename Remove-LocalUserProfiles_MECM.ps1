@@ -9,6 +9,8 @@ param(
 	[string]$ExcludedUsers
 )
 
+$version = "1.1"
+
 $ts = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 $log = "c:\engrit\logs\Remove-LocalUserProfiles_MECM_$ts.log"
 	
@@ -22,6 +24,7 @@ function log($msg) {
 	$msg | Out-File $log -Append
 }
 
+log "Script version: `"$version`""
 log "-DeleteProfilesOlderThan: `"$DeleteProfilesOlderThan`""
 log "-ExcludedUsers: `"$ExcludedUsers`""
 
@@ -85,6 +88,7 @@ else {
 			}
 			catch {
 				log "        Failed to delete profile."
+				log ($_ | ConvertTo-Json | Out-String)
 			}
 		}
 	}
