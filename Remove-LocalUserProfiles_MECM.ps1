@@ -9,11 +9,11 @@ param(
 	[string]$ExcludedUsers
 )
 
-$version = "1.1"
+$version = "1.2"
 
 $ts = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 $log = "c:\engrit\logs\Remove-LocalUserProfiles_MECM_$ts.log"
-	
+
 function log($msg) {
 	$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss:ffff"
 	$msg = "[$ts] $msg"
@@ -24,26 +24,47 @@ function log($msg) {
 	$msg | Out-File $log -Append
 }
 
+function Quit($msg) {
+	log "Quitting with message: `"$msg`"."
+	Write-Output $msg
+	exit
+)
+
+$profilesCount = 0
+$profilesAttempted = 0
+$profilesDeleted = 0
+$profilesFailed = 0
+
 log "Script version: `"$version`""
 log "-DeleteProfilesOlderThan: `"$DeleteProfilesOlderThan`""
 log "-ExcludedUsers: `"$ExcludedUsers`""
 
 if($DeleteProfilesOlderThan -lt 1) {
-	log "-DeleteProfilesOlderThan value is less than 1!"
+	Quit "-DeleteProfilesOlderThan value is less than 1!"
 }
 else {
 	$oldestDate = (Get-Date).AddDays(-$DeleteProfilesOlderThan)
 	log "oldestDate = $oldestDate"
 	
 	log "Getting profiles..."
-	#$profiles = Get-WMIObject -ClassName "Win32_UserProfile"
-	$profiles = Get-CIMInstance -ClassName "Win32_UserProfile" -OperationTimeoutSec 300
+	try {
+		#$profiles = Get-WMIObject -ClassName "Win32_UserProfile"
+		$profiles = Get-CIMInstance -ClassName "Win32_UserProfile" -OperationTimeoutSec 300
+	}
+	catch {
+		log ($_ | ConvertTo-Json | Out-String)
+		Quit "Failed to retrieve profiles with Get-CIMInstance!"
+	}
 	
 	if(!$profiles) {
-		log "    No profiles returned."
+		Quit "Profiles found is null!"
+	}
+	elseif(@($profiles).count -lt 1) {
+		Quit "Zero profiles found!"
 	}
 	else {
 		$count = @($profiles).count
+		$profilesCount = $count
 		log "    Found $count profiles."
 		
 		log "Filtering profiles to those older than $DeleteProfilesOlderThan days..."
@@ -77,6 +98,7 @@ else {
 		
 		log "Deleting remaining profiles..."
 		$profiles = $profiles | Sort LocalPath
+		$profilesAttempted = @($profiles).count
 		foreach($profile in $profiles) {
 			log "    Deleting profile: `"$($profile.LocalPath)`"..."
 			try {
@@ -85,12 +107,32 @@ else {
 				#$profile.Delete()
 				$profile | Remove-CIMInstance
 				log "        Profile deleted."
+				$profilesDeleted += 1
 			}
 			catch {
 				log "        Failed to delete profile."
 				log ($_ | ConvertTo-Json | Out-String)
+				$profilesFailed += 1
 			}
 		}
+		log "Done deleting profiles."
+	}
+}
+
+log "Profiles total: $profilesCount"
+log "Filtered profiles targeted for deletion: $profilesAttempted"
+log "Targeted profiles successfully deleted: $profilesDeleted"
+log "Targeted profiles failed to delete: $profilesFailed"
+
+if($profilesFailed -lt 1) {
+	Quit "All targeted profiles deleted successfully."
+}
+else {
+	if($profilesFailed -eq $profilesAttempted) {
+		Quit "All targeted profiles failed to delete!"
+	}
+	else {
+		Quit "Some, but not all targeted profiles failed to delete."
 	}
 }
 
