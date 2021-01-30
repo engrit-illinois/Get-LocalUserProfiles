@@ -54,6 +54,9 @@ WIP
 ### -ReturnObject
 WIP
 
+### -CIMTimeoutSec
+WIP
+
 # Context
 
 Specifically this module is mostly interested in the age of the profiles. For each computer, it looks through each profile and determines which profile is the "youngest" (i.e. has the most recent LastUseTime property), and which is the "oldest".  

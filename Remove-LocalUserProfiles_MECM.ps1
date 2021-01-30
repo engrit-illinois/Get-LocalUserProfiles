@@ -3,36 +3,85 @@
 
 param(
 	[Parameter(Mandatory=$true)]
-	[Int32]$DeleteProfilesOlderThan,
+	[int]$DeleteProfilesOlderThan,
 	
 	# Comma-separated list of NetIDs
-	[String]$ExcludedUsers
+	[string]$ExcludedUsers
 )
 
-If($DeleteProfilesOlderThan -gt 0) {
-	$oldestDate = (Get-Date).AddDays(-$DeleteProfilesOlderThan)
-	$Profiles = Get-CIMInstance -ClassName "Win32_UserProfile"
-	$Profiles = $Profiles | Where { $_.LastUseTime -le $oldestDate }
-	$Profiles = $Profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+$ts = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$log = "c:\engrit\logs\Remove-LocalUserProfiles_MECM_$ts.log"
 	
-	If($ExcludedUsers) {
-		$users = $ExcludedUsers.Split(",")
-		Foreach($user in $users) {
-			$Profiles = $Profiles | Where { $_.LocalPath -notlike "*$user*" }
-		}
+function log($msg) {
+	$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss:ffff"
+	$msg = "[$ts] $msg"
+	Write-Host $msg
+	if(!(Test-Path -PathType leaf -Path $log)) {
+		New-Item -ItemType File -Force -Path $log | Out-Null
 	}
+	$msg | Out-File $log -Append
+}
 
-	If($Profiles -eq $null) {
-		Write-Warning -Message "No profiles returned."
+log "-DeleteProfilesOlderThan: `"$DeleteProfilesOlderThan`""
+log "-ExcludedUsers: `"$ExcludedUsers`""
+
+if($DeleteProfilesOlderThan -lt 1) {
+	log "-DeleteProfilesOlderThan value is less than 1!"
+}
+else {
+	$oldestDate = (Get-Date).AddDays(-$DeleteProfilesOlderThan)
+	log "oldestDate = $oldestDate"
+	
+	log "Getting profiles..."
+	$profiles = Get-CIMInstance -ClassName "Win32_UserProfile" -OperationTimeoutSec 300
+	
+	if(!$profiles) {
+		log "    No profiles returned."
 	}
-	Else {
-		Foreach($RemoveProfile in $Profiles) {
-			Try{
-				$RemoveProfile.Delete()
+	else {
+		$count = @($profiles).count
+		log "    Found $count profiles."
+		
+		log "Filtering profiles to those older than $DeleteProfilesOlderThan days..."
+		$profiles = $profiles | Where { $_.LastUseTime -le $oldestDate }
+		$count = @($profiles).count
+		log "    $count profiles remain."
+		
+		log "Filtering out system profiles..."
+		$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+		$count = @($profiles).count
+		log "    $count profiles remain."
+		
+		if($ExcludedUsers) {
+			log "-ExcludedUsers was specified: `"$ExcludedUsers`""
+			
+			$users = $ExcludedUsers.Split(",")
+			log "    users: $users"
+			
+			log "    Filtering out excluded users..."
+			foreach($user in $users) {
+				log "        Filtering out user: `"$user`"..."
+				$profiles = $profiles | Where { $_.LocalPath -notlike "*$user*" }
 			}
-			Catch{
-				#Write-Host "Delete profile failed."
+			$count = @($profiles).count
+			log "        $count profiles remain."
+		}
+		else {
+			log "No -ExcludedUsers were specified."
+		}
+		
+		log "Deleting remaining profiles..."
+		foreach($profile in $profiles) {
+			log "    Deleting profile: `"$($profile.LocalPath)`"..."
+			try {
+				$profile.Delete()
+				log "        Profile deleted."
+			}
+			catch {
+				log "        Failed to delete profile."
 			}
 		}
 	}
 }
+
+log "EOF"

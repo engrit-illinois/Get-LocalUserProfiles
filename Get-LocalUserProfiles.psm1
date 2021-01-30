@@ -32,7 +32,9 @@ function Get-LocalUserProfiles {
 		
 		[string]$Indent = "    ",
 		
-		[switch]$ReturnObject
+		[switch]$ReturnObject,
+		
+		[int]$CIMTimeoutSec = 60
 	)
 	
 	function log {
@@ -118,7 +120,7 @@ function Get-LocalUserProfiles {
 	function Get-ProfilesFrom($comp) {
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..." -L 1
-		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile"
+		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		
 		# Ignore system root profile by default
 		if(!$IncludeRootProfiles) {
