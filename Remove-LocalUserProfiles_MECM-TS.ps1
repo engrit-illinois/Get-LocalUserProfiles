@@ -1,29 +1,26 @@
 # Documentation home: https://github.com/engrit-illinois/Get-LocalUserProfiles
 # By mseng3
 
-# Delete profiles that are older than the given number of days
-$DeleteProfilesOlderThan = 10
+param(
+	# Delete profiles that are older than the given number of days
+	[Parameter(Mandatory=$true)]
+	[int]$DeleteProfilesOlderThan,
+	
+	# Timeout gracefully because MECM Run Scripts feature will timeout ungracefully at 60 mins
+	[Parameter(Mandatory=$true)]
+	[int]$TimeoutMins,
+	
+	# Comma-separated list of NetIDs
+	[string]$ExcludedUsers,
+	
+	[string]$Log = "c:\engrit\logs\Remove-LocalUserProfiles_MECM-TS_$(Get-Date -Format `"yyyy-MM-dd_HH-mm-ss`").log",
+		
+	[int]$DeletionTimeEstimateMins = 1,
+	
+	[switch]$Loud
+)
 
-# Comma-separated list of NetIDs
-$ExcludedUsers
-
-# Timeout gracefully via self-regulation because MECM Run Scripts feature will timeout ungracefully at 60 mins
-# Recommended to make this a few minutes less than the expected ungraceful timeout
-$TimeoutMins = 480
-
-# A starting lowball (i.e. minimum) estimate for how long it will take to delete a single profile
-# This will become more accurate once we clock the actual deletions
-$DeletionTimeEstimateMins = 1,
-
-# Whether to output to the console
-# This should be false for MECM Run Scripts feature
-$Loud = $false
-
-$Version = "1.4"
-
-$Log = "c:\engrit\logs\Remove-LocalUserProfiles_MECM_$(Get-Date -Format `"yyyy-MM-dd_HH-mm-ss`").log"
-
-
+$VERSION = "1.5"
 
 function log($msg) {
 	$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss:ffff"
@@ -57,7 +54,7 @@ $profilesAttempted = 0
 $profilesDeleted = 0
 $profilesFailed = 0
 
-log "Script version: `"$Version`""
+log "Script version: `"$VERSION`""
 log "-DeleteProfilesOlderThan: `"$DeleteProfilesOlderThan`""
 log "-ExcludedUsers: `"$ExcludedUsers`""
 
