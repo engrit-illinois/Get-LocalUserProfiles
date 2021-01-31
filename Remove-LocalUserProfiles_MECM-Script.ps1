@@ -20,10 +20,10 @@ param(
 	[switch]$Loud
 )
 
-$VERSION = "1.4"
+$VERSION = "1.5"
 
 $ts = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-$LOG = "c:\engrit\logs\Remove-LocalUserProfiles_MECM_$ts.log"
+$LOG = "c:\engrit\logs\Remove-LocalUserProfiles_MECM-Script_$ts.log"
 
 function log($msg) {
 	$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss:ffff"
