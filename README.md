@@ -67,6 +67,8 @@ In many circumstances this info would be useful for the purposes of using [Remov
 
 This module was created mostly to scan large swaths of computers to look for patterns in the age of the youngest and oldest profiles. In the author's environment. Using it on any given shared computer, it's not uncommon to find that nearly all profiles have a LastUseTime within a few seconds of each other. This would be impossible if that property accurately described the times when these profiles were last legitimately used by their users. In our environment, this is the case even on computers which have over 600 profiles (from semesters of student logins).  
 
+<img src='./proof.png alt='Image of several dozen profiles with nearly identical LastUseTime properties.' title='The proof is in the pudding' />
+
 Sources on the issue:
 - https://techcommunity.microsoft.com/t5/windows-10-deployment/issue-with-date-modified-for-ntuser-dat/m-p/102438
 - https://community.spiceworks.com/topic/2263965-find-last-user-time
