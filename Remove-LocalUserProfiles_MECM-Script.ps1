@@ -11,7 +11,7 @@ param(
 	
 	# Timeout gracefully via self-regulation because MECM Run Scripts feature will timeout ungracefully at 60 mins
 	# Recommended to make this a few minutes less than the expected ungraceful timeout
-	[int]$TimeoutMins=55,
+	[int]$TimeoutMins = 55,
 	
 	# A starting lowball (i.e. minimum) estimate for how long it will take to delete a single profile
 	# This will become more accurate once we clock the actual deletions
