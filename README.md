@@ -1,10 +1,14 @@
 # Summary
 
+### WARNING: These scripts are a work in progress.
+
 This Powershell module pulls information about local user profiles from an array of given computers.  
 
 It will dump some of this info about all profiles found on all given computers to the screen. Additionally it will optionally log data to a log file, and/or a CSV file, as well as return an object containing all the data.  
 
-See below for more detailed [context](#context) and [credits](#credits).  
+This is sort of a companion module to [Remove-LocalUserProfiles](https://github.com/engrit-illinois/Remove-LocalUserProfiles). Get-LocalUserProfiles is meant for gathering information and informing decisions about how to use Remove-LocalUserProfiles.
+
+See below for more detailed [context](#context) and caveats. 
 
 # Usage
 
@@ -61,24 +65,14 @@ WIP
 
 Specifically this module is mostly interested in the age of the profiles. For each computer, it looks through each profile and determines which profile is the "youngest" (i.e. has the most recent LastUseTime property), and which is the "oldest".  
 
-In many circumstances this info would be useful for the purposes of "deleting profiles older than X days". However due to either Windows bugs, or incompatibilities with other tools, this LastUseTime property has been proven to be completely unreliable as a source to determining when a user last logged in. This is likely due to the property being updated by some unknown mechanism. This is very frustrating for IT pros looking to rely on that information.  
+In many circumstances this info would be useful for the purposes of using [Remove-LocalUserProfiles](https://github.com/engrit-illinois/Remove-LocalUserProfiles) to "delete profiles older than X days". However due to either Windows bugs, or incompatibilities with other tools, this LastUseTime property has proven to be completely unreliable as a source for determining when a user last logged in. This is likely due to the property being updated by some unknown mechanism. This is very frustrating for IT pros looking to rely on that information.  
 
-This module was created mostly to scan large swaths of computers to look for patterns in the age of the youngest and oldest profiles. In the author's environment
+This module was created mostly to scan large swaths of computers to look for patterns in the age of the youngest and oldest profiles. In the author's environment. Using it on any given shared computer, it's not uncommon to find that nearly all profiles have a LastUseTime within a few seconds of each other. This would be impossible if that property accurately described the times when these profiles were last legitimately used by their users. In our environment, this is the case even on computers which have over 500 profiles (from semesters of student logins).  
 
 Sources on the issue:
 - https://techcommunity.microsoft.com/t5/windows-10-deployment/issue-with-date-modified-for-ntuser-dat/m-p/102438
 - https://community.spiceworks.com/topic/2263965-find-last-user-time
 - https://powershell.org/forums/topic/incorrect-information-gets-recorded-in-win32_userprofile-lastusetime-obj/
 
-# Credits
-
-This module was based closely on various scripts written for the purposes of deleting old, stale profiles.
-- https://gallery.technet.microsoft.com/scriptcenter/Remove-Old-Local-User-080438f6#content
-- https://gallery.technet.microsoft.com/scriptcenter/How-to-delete-user-d86ffd3c/view/Discussions/0
-
 # Notes
 - By mseng3
-- `Remove-LocalUserProfiles.psm1` is an unedited copy of the source inspiration scripts mentioned in the credits section. For reference only. Do not use this.
-- `Remove-LocalUserProfiles_MECM-Script.ps1` is a completely re-written, non-module version of the source scripts mentioned above, which is compatible with the MECM Run Scripts feature, and has been tested. It is currently in MECM as a script named `Delete local user profiles older than X days`.
-  - Note: scripts run using the MECM Run Script feature have a basically undocumented (:rage:) timeout/maximum runtime of 60 minutes. This only affords time for a handful of profiles to be deleted, and a typicial lab computer in the author's environment can rack up several hundred stale profiles over the course of a semester, which would take this script (in its current implementation) many hours to delete. So it's not ideal.
-- Similarly, `Remove-LocalUserProfiles_MECM-TS.ps1` is a version written to be downloaded and used in a TS. This has not been tested yet.
