@@ -79,4 +79,5 @@ This module was based closely on various scripts written for the purposes of del
 # Notes
 - By mseng3
 - `Remove-LocalUserProfiles.psm1` is an unedited copy of the source inspiration scripts mentioned in the credits section. For reference only. Do not use this.
-- `Remove-LocalUserProfiles_MECM.ps1` is a completely re-written, non-module version of the source scripts mentioned above, which is compatible with the MECM Scripts feature, and has been tested. It is currently in MECM as a script named `Delete local user profiles older than X days`.
+- `Remove-LocalUserProfiles_MECM.ps1` is a completely re-written, non-module version of the source scripts mentioned above, which is compatible with the MECM Run Scripts feature, and has been tested. It is currently in MECM as a script named `Delete local user profiles older than X days`.
+  - Note: scripts run using the MECM Run Script feature have a basically undocumented (:rage:) timeout/maximum runtime of 60 minutes. This only affords time for a handful of profiles to be deleted, and a typicial lab computer in the author's environment can rack up several hundred stale profiles over the course of a semester, which would take this script (in its current implementation) many hours to delete. So it's not ideal.

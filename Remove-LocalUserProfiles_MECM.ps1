@@ -59,63 +59,84 @@ else {
 	if(!$profiles) {
 		Quit "Profiles found is null!"
 	}
-	elseif(@($profiles).count -lt 1) {
-		Quit "Zero profiles found!"
-	}
 	else {
 		$count = @($profiles).count
 		$profilesCount = $count
-		log "    Found $count profiles."
 		
-		log "Filtering profiles to those older than $DeleteProfilesOlderThan days..."
-		$profiles = $profiles | Where { $_.LastUseTime -le $oldestDate }
-		$count = @($profiles).count
-		log "    $count profiles remain."
-		
-		log "Filtering out system profiles..."
-		$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
-		$count = @($profiles).count
-		log "    $count profiles remain."
-		
-		if($ExcludedUsers) {
-			log "-ExcludedUsers was specified: `"$ExcludedUsers`""
-			
-			$users = $ExcludedUsers.Split(",")
-			$users = $users.Replace("`"","")
-			log "    users: $users"
-			
-			log "    Filtering out excluded users..."
-			foreach($user in $users) {
-				log "        Filtering out user: `"$user`"..."
-				$profiles = $profiles | Where { $_.LocalPath -notlike "*$user*" }
-			}
-			$count = @($profiles).count
-			log "        $count profiles remain."
+		if($count -lt 1) {
+			Quit "Zero profiles found!"
 		}
 		else {
-			log "No -ExcludedUsers were specified."
-		}
+			log "    Found $count profiles."
 		
-		log "Deleting remaining profiles..."
-		$profiles = $profiles | Sort LocalPath
-		$profilesAttempted = @($profiles).count
-		foreach($profile in $profiles) {
-			log "    Deleting profile: `"$($profile.LocalPath)`"..."
-			try {
-				# Delete() method works with Get-WMIObject, but not with Get-CIMInstance
-				# https://www.reddit.com/r/PowerShell/comments/7qu9dg/inconsistent_results_with_calling_win32/
-				#$profile.Delete()
-				$profile | Remove-CIMInstance
-				log "        Profile deleted."
-				$profilesDeleted += 1
+			log "Filtering profiles to those older than $DeleteProfilesOlderThan days..."
+			$profiles = $profiles | Where { $_.LastUseTime -le $oldestDate }
+			$count = @($profiles).count
+			
+			if($count -lt 1) {
+				Quit "Zero profiles older than $DeleteProfilesOlderThan found."
 			}
-			catch {
-				log "        Failed to delete profile."
-				log ($_ | ConvertTo-Json | Out-String)
-				$profilesFailed += 1
+			else {
+				log "    $count profiles remain."
+				
+				log "Filtering out system profiles..."
+				$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+				$count = @($profiles).count
+				
+				if($count -lt 1) {
+					Quit "Zero non-system profiles older than $DeleteProfilesOlderThan found."
+				}
+				else {
+					log "    $count profiles remain."
+					
+					if($ExcludedUsers) {
+						log "-ExcludedUsers was specified: `"$ExcludedUsers`""
+						
+						$users = $ExcludedUsers.Split(",")
+						$users = $users.Replace("`"","")
+						log "    users: $users"
+						
+						log "    Filtering out excluded users..."
+						foreach($user in $users) {
+							log "        Filtering out user: `"$user`"..."
+							$profiles = $profiles | Where { $_.LocalPath -notlike "*$user*" }
+						}
+						$count = @($profiles).count
+						
+						if($count -lt 1) {
+							Quit "Zero non-system, non-excluded profiles older than $DeleteProfilesOlderThan found."
+						}
+						else {
+							log "        $count profiles remain."
+						}
+					}
+					else {
+						log "No -ExcludedUsers were specified."
+					}
+		
+					log "Deleting remaining profiles..."
+					$profiles = $profiles | Sort LocalPath
+					$profilesAttempted = @($profiles).count
+					foreach($profile in $profiles) {
+						log "    Deleting profile: `"$($profile.LocalPath)`"..."
+						try {
+							# Delete() method works with Get-WMIObject, but not with Get-CIMInstance
+							# https://www.reddit.com/r/PowerShell/comments/7qu9dg/inconsistent_results_with_calling_win32/
+							#$profile.Delete()
+							$profile | Remove-CIMInstance
+							log "        Profile deleted."
+							$profilesDeleted += 1
+						}
+						catch {
+							log "        Failed to delete profile."
+							log ($_ | ConvertTo-Json | Out-String)
+							$profilesFailed += 1
+						}
+					}
+					log "Done deleting profiles."
+				}
 			}
 		}
-		log "Done deleting profiles."
 	}
 }
 
@@ -135,5 +156,7 @@ else {
 		Quit "Some, but not all targeted profiles failed to delete."
 	}
 }
+
+Quit "Unknown result."
 
 log "EOF"
