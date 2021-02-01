@@ -58,28 +58,38 @@ function Get-LocalUserProfiles {
 			[int]$V = 0, # verbosity level
 			[switch]$NoTS, # omit timestamp
 			[switch]$NoNL, # omit newline after output
+			[switch]$NoConsole, # skip outputting to console
 			[switch]$NoLog # skip logging to file
 		)
 		
+		# Custom indent per message, good for making output much more readable
 		for($i = 0; $i -lt $L; $i += 1) {
 			$Msg = "$Indent$Msg"
 		}
 		
+		# Add timestamp to each message
+		# $NoTS parameter useful for making things like tables look cleaner
 		if(!$NoTS) {
 			$ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss:ffff"
 			$Msg = "[$ts] $Msg"
 		}
 		
+		# Each message can be given a custom verbosity ($V), and so can be displayed or ignored depending on $Verbosity
 		# Check if this particular message is too verbose for the given $Verbosity level
 		if($V -le $Verbosity) {
 			
-			# If we're allowing console output, then Write-Host
-			if(!$NoConsoleOutput) {
-				if($NoNL) {
-					Write-Host $Msg -NoNewline
-				}
-				else {
-					Write-Host $Msg
+			# Check if this particular message is supposed to be output to console
+			if(!$NoConsole) {
+				
+				# If we're allowing console output, then Write-Host
+				if(!$NoConsoleOutput) {
+					
+					if($NoNL) {
+						Write-Host $Msg -NoNewline
+					}
+					else {
+						Write-Host $Msg
+					}
 				}
 			}
 			
@@ -103,6 +113,11 @@ function Get-LocalUserProfiles {
 				}
 			}
 		}
+	}
+	
+	function Log-Error($e, $L) {
+		log "$($e.Exception.Message)" -L $l
+		log "$($e.InvocationInfo.PositionMessage.Split("`n")[0])" -L ($L + 1)
 	}
 	
 	function Get-CompNameString($comps) {
@@ -165,7 +180,13 @@ function Get-LocalUserProfiles {
 		#log "Getting profiles from `"$compName`"..." -L 1
 		
 		# TODO: wrap this in try/catch and save any errors to a new custom property
-		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
+		$error = ""
+		try {
+			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
+		}
+		catch {
+			
+		}
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
