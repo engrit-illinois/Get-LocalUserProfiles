@@ -86,7 +86,7 @@ Not compatible with any value of `-MaxAsyncJobs` greater than `0`. Will be ignor
 
 ### -Indent <string>
 The string used as an indent, when indenting log entries.  
-Default is <pre>`    `</pre> (four space characters).  
+Default is four space characters.  
 
 ### -CsvType <"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles">
 Optional string from a defined set of strings.  
