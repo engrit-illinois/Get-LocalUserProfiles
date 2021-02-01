@@ -35,12 +35,12 @@ function Get-LocalUserProfiles {
 		
 		[string]$Indent = "    ",
 		
-		[ValidateSet("Summary","Computers","FlatProfiles")]
+		[ValidateSet("ComputersSummary","ComputersSummaryExtended","FlatProfiles")]
 		[string]$CsvType = "Summary",
 		
 		[switch]$ReturnObject,
 		
-		[ValidateSet("Summary","Computers","FlatProfiles")]
+		[ValidateSet("ComputersSummary","ComputersSummaryExtended","FlatProfiles")]
 		[string]$ReturnObjectType = "Summary",
 		
 		[ValidateSet("Name","_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan")]
@@ -346,7 +346,7 @@ function Get-LocalUserProfiles {
 			log "-Csv was specified. Exporting data to `"$CsvPath`"..."
 			
 			switch($CsvType) {
-				"Computers" { $csvComps = $comps }
+				"ComputersSummaryExtended" { $csvComps = $comps }
 				"FlatProfiles" { $csvComps = $flatProfiles }
 				Default { $csvComps = $summaryComps }
 			}
@@ -358,14 +358,14 @@ function Get-LocalUserProfiles {
 	function Return-Object($comps, $summaryComps, $flatProfiles) {
 		if($ReturnObject) {
 			switch($ReturnObjectType) {
-				"Computers" { $comps }
+				"ComputersSummaryExtended" { $comps }
 				"FlatProfiles" { $flatProfiles }
 				Default { $summaryComps }
 			}
 		}
 	}
 	
-	function Get-OutputComps($comps) {
+	function Get-SummaryComps($comps) {
 		$comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort $SortSummaryBy
 	}
 	
@@ -390,7 +390,7 @@ function Get-LocalUserProfiles {
 		$comps = Get-Profiles $comps
 		$comps = Munge-Profiles $comps
 		
-		$summaryComps = Get-OutputComps $comps
+		$summaryComps = Get-SummaryComps $comps
 		$flatProfiles = Get-FlatProfiles $comps
 		
 		Print-Profiles $summaryComps
