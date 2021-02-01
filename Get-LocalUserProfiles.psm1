@@ -206,7 +206,7 @@ function Get-LocalUserProfiles {
 		
 		# For each computer start an asynchronous job
 		log "Starting async jobs to get profiles from computers..." -L 1
-		$count = 1
+		$count = 0
 		foreach ($comp in $comps) {
 			log $comp.Name -L 2
 			Start-AsyncJobGetProfilesFrom $comp
@@ -224,7 +224,7 @@ function Get-LocalUserProfiles {
 		$newComps = @()
 		
 		log "Receiving jobs..." -L 1
-		$count = 1
+		$count = 0
 		foreach($job in Get-Job) {
 			$comp = Receive-Job $job
 			log "Recieved job for computer `"$($comp.Name)`"." -L 2
