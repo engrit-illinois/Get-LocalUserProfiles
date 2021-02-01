@@ -30,7 +30,7 @@ function Get-LocalUserProfiles {
 		[switch]$IncludeSystemProfiles,
 		
 		# Outputs profiles gathered from each computer as they are gathered
-		# Might be all kinds of weird with asynchronous jobs
+		# Not compatible with -MaxAsyncJobs > 1, will be ignored
 		[switch]$PrintProfilesInRealtime,
 		
 		[string]$Indent = "    ",
@@ -126,6 +126,8 @@ function Get-LocalUserProfiles {
 	function Get-ProfilesFrom($comp) {
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..." -L 1
+		
+		# TODO: wrap this in try/catch and save any errors to a new custom property
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		
 		# Ignore system profiles by default
@@ -146,9 +148,17 @@ function Get-LocalUserProfiles {
 			$CIMTimeoutSec,
 			$IncludeSystemProfiles
 		)
+		
+		# Note: cannot do any logging to the console from jobs (i.e. log() and Print-ProfilesFrom()), because jobs run in another process.
+		# Might be able to capture this with a bunch of extra code checking each job while it's still running, but that's totally not worth it for short jobs
+		# Jobs might still be able to write to the log file, but it would be out of order and might cause race conditions with different processes accessing the same log file at the same time.
+		# Also, any external functions and variable must be passed into the job since it's a separate process. For functions which call other functions and variables, this quickly becomes infeasible.
+		# For simple scripts like this, I'll have to accept not getting any real-time feedback from async jobs.
 			
 		$compName = $comp.Name
 		#log "Getting profiles from `"$compName`"..." -L 1
+		
+		# TODO: wrap this in try/catch and save any errors to a new custom property
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		
 		# Ignore system profiles by default
