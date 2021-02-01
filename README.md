@@ -70,7 +70,7 @@ By default, the script completely ignores any profiles which are determined to b
 This is because the output of this module is primarily intended for use in conjuction with [Remove-LocalUserProfiles](https://github.com/engrit-illinois/Remove-LocalUserProfiles), and we don't want to encourage the accidental deletion of system profiles.  
 If specified, system profiles are included in the gathered data and output.  
 
-### -SystemRootProfileQuery <string>
+### -SystemRootProfileQuery \<string\>
 Optional string.  
 Defines the wildcard query by which the module determines which profiles are system account profiles.  
 Default is `*$env:SystemRoot*`.  
