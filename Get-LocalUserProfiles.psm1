@@ -290,8 +290,16 @@ function Get-LocalUserProfiles {
 		}
 		$allProfiles
 	}
+	
+	function Get-RunTime($startTime) {
+		$endTime = Get-Date
+		$runTime = New-TimeSpan -Start $startTime -End $endTime
+		$runTime
+	}
 
 	function Do-Stuff {
+		$startTime = Get-Date
+		
 		$comps = Get-Comps $Computers
 		$comps = Get-Profiles $comps
 		$comps = Munge-Profiles $comps
@@ -310,6 +318,9 @@ function Get-LocalUserProfiles {
 				$allProfiles
 			}
 		}
+		
+		$runTime = Get-RunTime $startTime
+		log "Runtime: $runTime"
 	}
 	
 	Do-Stuff
