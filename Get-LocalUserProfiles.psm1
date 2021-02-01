@@ -121,10 +121,12 @@ function Get-LocalUserProfiles {
 		$comps
 	}
 
-	function Get-ProfilesFrom {
+	$func = { function Get-ProfilesFrom {
 		# Needed so this can be used in Start-Job and
 		# passed parameters
 		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
+		# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
+		# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
 		param($comp)
 		
 		$compName = $comp.Name
@@ -141,7 +143,7 @@ function Get-LocalUserProfiles {
 		Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"." -L 1 -V 2
 		$comp
-	}
+	} }
 	
 	function Print-ProfilesFrom($comp) {
 		if($PrintProfilesInRealtime) {
@@ -169,7 +171,7 @@ function Get-LocalUserProfiles {
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
 		
-		Start-Job -ScriptBlock ${function:Get-ProfilesFrom} -ArgumentList $comp | Out-Null
+		Start-Job -InitializationScript $func -ScriptBlock ${function:Get-ProfilesFrom} -ArgumentList $comp | Out-Null
 	}
 	
 	function Get-ProfilesAsync($comps) {
