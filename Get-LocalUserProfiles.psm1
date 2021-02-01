@@ -164,7 +164,7 @@ function Get-LocalUserProfiles {
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
 		
-		Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock {
+		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock {
 			
 			param(
 				$comp,
@@ -198,30 +198,44 @@ function Get-LocalUserProfiles {
 			#Print-ProfilesFrom($comp)
 			#log "Done getting profiles from `"$compname`"." -L 1 -V 2
 			$comp
-		} | Out-Null
+		}
 	}
 	
 	function Get-ProfilesAsync($comps) {
 		# Async example: https://stackoverflow.com/a/24272099/994622
 		
 		# For each computer start an asynchronous job
+		log "Starting async jobs to get profiles from computers..." -L 1
+		$count = 1
 		foreach ($comp in $comps) {
+			log $comp.Name -L 2
 			Start-AsyncJobGetProfilesFrom $comp
+			$count += 1
 		}
+		log "Started $count jobs." -L 1
 		
 		# Wait for all the jobs to finish
+		log "Waiting for async jobs to finish..." -L 1
 		Wait-Job * | Out-Null
 
 		# Once all jobs are done, start processing their output
 		# We can't directly write over each $comp in $comps, because we don't know which one is which without doing a bunch of extra logic
 		# So just make a new $comps instead
 		$newComps = @()
+		
+		log "Receiving jobs..." -L 1
+		$count = 1
 		foreach($job in Get-Job) {
+			log "Recieving job #$count..." -L 2
 			$comp = Receive-Job $job
-			$comps += $comp
+			log "This job is for computer `"$($comp.Name)`"." -L 3
+			$newComps += $comp
+			$count += 1
 		}
+		log "Recieved $count jobs." -L 1
 		
 		# Remove all the jobs
+		log "Removing jobs..."
 		Remove-Job -State Completed
 		
 		$newComps
