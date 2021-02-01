@@ -20,8 +20,10 @@ function Get-LocalUserProfiles {
 		
 		[switch]$NoConsoleOutput,
 		
-		# Not implemented yet
-		[int]$MaxAsyncJobs = 1,
+		# Maximum number of asynchronous jobs allowed to run at once
+		# This is to limit how many computers are simultaneously being polled for profile data over the network
+		# Set to 0 to disable the asynchronous mechanism entirely and just do it sequentially
+		[int]$MaxAsyncJobs = 10,
 		
 		# System root profiles ignored by default because this cmdlet's output will
 		# likely be used to delete profiles, and we don't want to accidentally enable that mistake
@@ -138,6 +140,29 @@ function Get-LocalUserProfiles {
 		$comp
 	}
 	
+	function AsyncGet-ProfilesFrom {
+		param(
+			$comp,
+			$CIMTimeoutSec,
+			$IncludeSystemProfiles
+		)
+			
+		$compName = $comp.Name
+		#log "Getting profiles from `"$compName`"..." -L 1
+		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
+		
+		# Ignore system profiles by default
+		if(!$IncludeSystemProfiles) {
+			$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+		}
+		
+		#log "Found $(@($profiles).count) profiles." -L 2 -V 1
+		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
+		#Print-ProfilesFrom($comp)
+		#log "Done getting profiles from `"$compname`"." -L 1 -V 2
+		$comp
+	}
+	
 	function Print-ProfilesFrom($comp) {
 		if($PrintProfilesInRealtime) {
 			# Limit output to relevant info
@@ -153,7 +178,7 @@ function Get-LocalUserProfiles {
 		}
 	}
 	
-	function Start-AsyncJobGetProfilesFrom($comp) {
+	function Start-AsyncGetProfilesFrom($comp) {
 		# If there are already the max number of jobs running, then wait
 		$running = @(Get-Job | Where { $_.State -eq 'Running' })
 		if($running.Count -ge $MaxAsyncJobs) {
@@ -180,6 +205,8 @@ function Get-LocalUserProfiles {
 			# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
 			# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
 			# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
+			# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
+			# https://powershell.org/forums/topic/what-is-function-variable/
 			
 			#$comp = GetProfilesFrom $comp
 			#return $comp
@@ -201,7 +228,20 @@ function Get-LocalUserProfiles {
 		}
 	}
 	
-	function Get-ProfilesAsync($comps) {
+	function Start-AsyncGetProfilesFrom2($comp) {
+		# If there are already the max number of jobs running, then wait
+		$running = @(Get-Job | Where { $_.State -eq 'Running' })
+		if($running.Count -ge $MaxAsyncJobs) {
+			$running | Wait-Job -Any | Out-Null
+		}
+		
+		# After waiting, start the job
+		# Each job gets profiles, and returns a modified $comp object with the profiles included
+		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
+		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock ${ function:AsyncGet-ProfilesFrom }
+	}
+	
+	function AsyncGet-Profiles($comps) {
 		# Async example: https://stackoverflow.com/a/24272099/994622
 		
 		# For each computer start an asynchronous job
@@ -209,7 +249,7 @@ function Get-LocalUserProfiles {
 		$count = 0
 		foreach ($comp in $comps) {
 			log $comp.Name -L 2
-			Start-AsyncJobGetProfilesFrom $comp
+			Start-AsyncGetProfilesFrom2 $comp
 			$count += 1
 		}
 		log "Started $count jobs." -L 1
@@ -243,13 +283,13 @@ function Get-LocalUserProfiles {
 	function Get-Profiles($comps) {
 		log "Retrieving profiles..."
 		
-		if($MaxAsyncJobs -lt 2) {
+		if($MaxAsyncJobs -lt 1) {
 			foreach($comp in $comps) {
 				$comp = Get-ProfilesFrom $comp
 			}
 		}
 		else {
-			$comps = Get-ProfilesAsync $comps
+			$comps = AsyncGet-Profiles $comps
 		}
 		
 		log "Done retrieving profiles." -V 2
@@ -266,7 +306,7 @@ function Get-LocalUserProfiles {
 			# Track youngest and oldest profile
 			$oldestProfileDate = Get-Date # default to current date and time
 			$oldestProfilePath = "unknown"
-			$youngestProfileDate = Get-Date 0 # default to an impossibly old date and time
+			$youngestProfileDate = Get-Date 1900 # default to an impossibly old date and time
 			$youngestProfilePath = "unknown"
 			
 			foreach($profile in $comp._Profiles) {
