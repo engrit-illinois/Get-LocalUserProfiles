@@ -35,10 +35,16 @@ function Get-LocalUserProfiles {
 		
 		[string]$Indent = "    ",
 		
+		[ValidateSet("Summary","Computers","FlatProfiles")]
+		[string]$CsvType = "Summary",
+		
 		[switch]$ReturnObject,
 		
-		[ValidateSet("Summary","AllProfiles")]
+		[ValidateSet("Summary","Computers","FlatProfiles")]
 		[string]$ReturnObjectType = "Summary",
+		
+		[ValidateSet("Name","_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan")]
+		[string]$SortSummaryBy = "_NumberOfProfiles",
 		
 		[int]$CIMTimeoutSec = 60
 	)
@@ -335,23 +341,40 @@ function Get-LocalUserProfiles {
 		log ($comps | Format-Table | Out-String) -NoTS
 	}
 	
-	function Export-Profiles($comps) {
+	function Export-Profiles($comps, $summaryComps) {
 		if($Csv) {
 			log "-Csv was specified. Exporting data to `"$CsvPath`"..."
-			$comps | Export-Csv -NoTypeInformation -Encoding "Ascii" -Path $CsvPath
+			
+			switch($CsvType) {
+				"Computers" { $csvComps = $comps }
+				"FlatProfiles" { $csvComps = $flatProfiles }
+				Default { $csvComps = $summaryComps }
+			}
+			
+			$csvComps | Export-Csv -NoTypeInformation -Encoding "Ascii" -Path $CsvPath
+		}
+	}
+	
+	function Return-Object($comps, $summaryComps, $flatProfiles) {
+		if($ReturnObject) {
+			switch($ReturnObjectType) {
+				"Computers" { $comps }
+				"FlatProfiles" { $flatProfiles }
+				Default { $summaryComps }
+			}
 		}
 	}
 	
 	function Get-OutputComps($comps) {
-		$comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name
+		$comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort $SortSummaryBy
 	}
 	
-	function Get-AllProfiles($comps) {
-		$allProfiles = @()
+	function Get-FlatProfiles($comps) {
+		$flatProfiles = @()
 		foreach($comp in $comps) {
-			$allProfiles += @($comp._Profiles)
+			$flatProfiles += @($comp._Profiles)
 		}
-		$allProfiles
+		$flatProfiles
 	}
 	
 	function Get-RunTime($startTime) {
@@ -367,20 +390,12 @@ function Get-LocalUserProfiles {
 		$comps = Get-Profiles $comps
 		$comps = Munge-Profiles $comps
 		
-		$outputComps = Get-OutputComps $comps
+		$summaryComps = Get-OutputComps $comps
+		$flatProfiles = Get-FlatProfiles $comps
 		
-		Print-Profiles $outputComps
-		Export-Profiles $outputComps
-		
-		if($ReturnObject) {
-			if($ReturnObjectType -eq "Summary") {
-				$outputComps
-			}
-			elseif($ReturnObjectType -eq "AllProfiles") {
-				$allProfiles = Get-AllProfiles $comps
-				$allProfiles
-			}
-		}
+		Print-Profiles $summaryComps
+		Export-Profiles $comps $summaryComps $flatProfiles
+		Return-Object $comps $summaryComps $flatProfiles
 		
 		$runTime = Get-RunTime $startTime
 		log "Runtime: $runTime"
