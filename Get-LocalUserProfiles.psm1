@@ -178,58 +178,6 @@ function Get-LocalUserProfiles {
 		}
 	}
 	
-	function Start-AsyncGetProfilesFrom($comp) {
-		# If there are already the max number of jobs running, then wait
-		$running = @(Get-Job | Where { $_.State -eq 'Running' })
-		if($running.Count -ge $MaxAsyncJobs) {
-			$running | Wait-Job -Any | Out-Null
-		}
-		
-		# After waiting, start the job
-		# Each job gets profiles, and returns a modified $comp object with the profiles included
-		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-		
-		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock {
-			
-			param(
-				$comp,
-				$CIMTimeoutSec,
-				$IncludeSystemProfiles
-			)
-			
-			# Each job gets profiles, and returns a modified $comp object with the profiles included
-			# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-			
-			# Trying to use script-level functions in Start-Job ScriptBlocks is non-trivial:
-			# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
-			# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
-			# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
-			# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
-			# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
-			# https://powershell.org/forums/topic/what-is-function-variable/
-			# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
-			# https://stackoverflow.com/a/8491780/994622
-			
-			#$comp = GetProfilesFrom $comp
-			#return $comp
-			
-			$compName = $comp.Name
-			#log "Getting profiles from `"$compName`"..." -L 1
-			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
-			
-			# Ignore system profiles by default
-			if(!$IncludeSystemProfiles) {
-				$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
-			}
-			
-			#log "Found $(@($profiles).count) profiles." -L 2 -V 1
-			$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
-			#Print-ProfilesFrom($comp)
-			#log "Done getting profiles from `"$compname`"." -L 1 -V 2
-			$comp
-		}
-	}
-	
 	function Start-AsyncGetProfilesFrom2($comp) {
 		# If there are already the max number of jobs running, then wait
 		$running = @(Get-Job | Where { $_.State -eq 'Running' })
@@ -240,6 +188,22 @@ function Get-LocalUserProfiles {
 		# After waiting, start the job
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
+		
+		<# Turns out that using script-level functions in Start-Job ScriptBlocks is not that simple:
+		
+		#$comp = GetProfilesFrom $comp
+		#return $comp
+		
+		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
+		# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
+		# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
+		# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
+		# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
+		# https://powershell.org/forums/topic/what-is-function-variable/
+		# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
+		# https://stackoverflow.com/a/8491780/994622
+		#>
+		
 		$scriptBlock = Get-Content function:AsyncGet-ProfilesFrom
 		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock
 	}
@@ -309,7 +273,7 @@ function Get-LocalUserProfiles {
 			# Track youngest and oldest profile
 			$oldestProfileDate = Get-Date # default to current date and time
 			$oldestProfilePath = "unknown"
-			$youngestProfileDate = Get-Date 1900 # default to an impossibly old date and time
+			$youngestProfileDate = Get-Date "1900-01-01" # default to an impossibly old date and time
 			$youngestProfilePath = "unknown"
 			
 			foreach($profile in $comp._Profiles) {
