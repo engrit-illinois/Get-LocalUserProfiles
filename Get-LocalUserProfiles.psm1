@@ -121,7 +121,7 @@ function Get-LocalUserProfiles {
 		$comps
 	}
 
-	function Get-ProfilesFrom {
+	function GetProfilesFrom {
 		# Needed so this can be used in Start-Job and
 		# passed parameters
 		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
@@ -213,7 +213,7 @@ function Get-LocalUserProfiles {
 		
 		if($MaxAsyncJobs -lt 2) {
 			foreach($comp in $comps) {
-				$comp = Get-ProfilesFrom $comp
+				$comp = GetProfilesFrom $comp
 			}
 		}
 		else {
