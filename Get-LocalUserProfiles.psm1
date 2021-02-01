@@ -207,6 +207,8 @@ function Get-LocalUserProfiles {
 			# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
 			# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
 			# https://powershell.org/forums/topic/what-is-function-variable/
+			# https://stackoverflow.com/questions/8489060/reference-command-name-with-dashes
+			# https://stackoverflow.com/a/8491780/994622
 			
 			#$comp = GetProfilesFrom $comp
 			#return $comp
@@ -238,7 +240,8 @@ function Get-LocalUserProfiles {
 		# After waiting, start the job
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock ${ Get-Content function:AsyncGet-ProfilesFrom }
+		$scriptBlock = Get-Content function:AsyncGet-ProfilesFrom
+		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock ${ $scriptBlock }
 	}
 	
 	function AsyncGet-Profiles($comps) {
