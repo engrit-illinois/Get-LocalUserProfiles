@@ -164,7 +164,7 @@ function Get-LocalUserProfiles {
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
 		
-		Start-Job -ArgumentList $CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock {
+		Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock {
 			
 			param(
 				$CIMTimeoutSec,
