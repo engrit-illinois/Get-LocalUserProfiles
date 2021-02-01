@@ -29,6 +29,8 @@ function Get-LocalUserProfiles {
 		# likely be used to delete profiles, and we don't want to accidentally enable that mistake
 		[switch]$IncludeSystemProfiles,
 		
+		[string]$SystemRootProfileQuery = "*$env:SystemRoot*",
+		
 		# Outputs profiles gathered from each computer as they are gathered
 		# Not compatible with -MaxAsyncJobs > 1, will be ignored
 		[switch]$PrintProfilesInRealtime,
@@ -50,7 +52,6 @@ function Get-LocalUserProfiles {
 	)
 	
 	$SCRIPT_VERSION = "v1.2"
-	$SYSTEM_PROFILE_QUERY = "*$env:SystemRoot*"
 	
 	function log {
 		param (
@@ -156,7 +157,7 @@ function Get-LocalUserProfiles {
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
-			$profiles = $profiles | Where { $_.LocalPath -notlike $SYSTEM_PROFILE_QUERY }
+			$profiles = $profiles | Where { $_.LocalPath -notlike $SystemRootProfileQuery }
 		}
 		
 		log "Found $(@($profiles).count) profiles." -L 2 -V 1
@@ -193,7 +194,7 @@ function Get-LocalUserProfiles {
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
-			$profiles = $profiles | Where { $_.LocalPath -notlike $SYSTEM_PROFILE_QUERY }
+			$profiles = $profiles | Where { $_.LocalPath -notlike $SystemRootProfileQuery }
 		}
 		
 		#log "Found $(@($profiles).count) profiles." -L 2 -V 1

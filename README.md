@@ -66,9 +66,17 @@ To disable asynchronous jobs and external processes entirely, running everything
 
 ### -IncludeSystemProfiles
 Optional switch.  
-By default, the script completely ignores any profiles which have a `LocalPath` property matching `*$env:SystemRoot*` (i.e. system account profiles).  
+By default, the script completely ignores any profiles which are determined to be system account profiles. See `-SystemRootProfileQuery`.  
 This is because the output of this module is primarily intended for use in conjuction with [Remove-LocalUserProfiles](https://github.com/engrit-illinois/Remove-LocalUserProfiles), and we don't want to encourage the accidental deletion of system profiles.  
 If specified, system profiles are included in the gathered data and output.  
+
+### -SystemRootProfileQuery <string>
+Optional string.  
+Defines the wildcard query by which the module determines which profiles are system account profiles.  
+Default is `*$env:SystemRoot*`.  
+It is not recommended to change this unless you understand what you are doing.  
+This value is matched against the `LocalPath` property of profiles.  
+On a standard system, `*$env:SystemRoot*` will evaluate to `C:\Windows`, which is what separates the `LocalPath` of system profiles from regular user accounts, which have a `LocalPath` containing `C:\Users` instead.  
 
 ### -PrintProfilesInRealtime
 Optional switch.  
@@ -81,19 +89,39 @@ The string used as an indent, when indenting log entries.
 Default is `    ` (four space characters).  
 
 ### -CsvType <"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles">
-WIP
+Optional string from a defined set of strings.  
+The type of output saved to the CSV file (if `-Csv` was specified).  
+Values are:
+- `ComputersSummary`: Outputs one entry for each computer polled. Each entry contains a summary of the relevant information about the computer. This includes the number of targeted profiles found, the `LastUseTime` of the oldest and youngest profiles, the `LocalPath` of those profiles, and the timespan between the oldest and youngest profile ages.  
+- `ComputersSummaryExtended`: Contains everything that `ComputersSummary` contains plus all the rest of the ancillary information gathered about each computer. This includes a column containing a single-string text-rendering of the array of profiles found on each computer.  
+- `FlatProfiles`: Outputs one entry for each profile found, across all computers. Each entry contains all of the profile's data, including the name of the computer from whence it came. If you plan on using the output of this module to delete profiles, this may be the output type you want. However, see `-ReturnObject` and `-ReturnObjectType`.  
+Default is `ComputersSummary`.  
 
 ### -ReturnObject
-WIP
+Optional switch.  
+If specified, the module returns an object to the pipeline, which contains all of the data gathered during execution.  
+The format of the data in the returned object is controlled by `-ReturnObjectType`.  
 
-### -ReturnObjectType
-WIP
+### -ReturnObjectType <"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles">
+Optional string from a defined set of strings.  
+The type of output returned as an object to the pipeline (if `-ReturnObject` was specified).  
+Values are:
+- `ComputersSummary`: Outputs one entry for each computer polled. Each entry contains several properties with information summarized from the profile data of the computer. This includes the number of targeted profiles found, the `LastUseTime` of the oldest and youngest profiles, the `LocalPath` of those profiles, and the timespan between the oldest and youngest profile ages.  
+- `ComputersSummaryExtended`: Contains everything that `ComputersSummary` contains plus all the rest of the ancillary information gathered about each computer. Also includes a property named "_Profiles", which contains an array of all the profiles found on the computer.  
+  - The [Remove-LocalUserProfiles_BETA](https://github.com/engrit-illinois/Remove-LocalUserProfiles) module is being designed to accept this type of output. Currently a WIP.  
+- `FlatProfiles`: Outputs an array containing every targeted profile found, across all computers. Each array item contains all of the profile's data, including the name of the computer from whence it came.  
+Default is `ComputersSummary`.  
 
-### -SortSummaryBy
-WIP
+### -SortSummaryBy <"Name" | "_NumberOfProfiles" | "_YoungestProfilePath" | "_YoungestProfileDate" | "_OldestProfileDate" | "_OldestProfilePath" | "_LargestProfileTimeSpan">
+Optional string from a defined set of strings.  
+Determines which property by which to sort the summary table that is printed to the console after the module finishes.  
+Default is `_NumberOfProfiles`.  
+Note: the summary table (and all other console output) will not be displayed if `-NoConsoleOutput` is specified.  
 
-### -CIMTimeoutSec
-WIP
+### -CIMTimeoutSec <int>
+Optional integer.  
+The number of seconds to wait before timing out `Get-CIMInstance` operations (the mechanism by which the script retrieves profile info from remote computers).  
+Default is 60.  
 
 # Context
 
