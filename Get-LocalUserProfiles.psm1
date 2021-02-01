@@ -171,13 +171,13 @@ function Get-LocalUserProfiles {
 		# After waiting, start the job
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-		$init = { function Get-ProfilesFrom { $function:"Get-ProfilesFrom" } }
+		$init = { function GetProfilesFrom { $function:GetProfilesFrom } }
 		#$init = [ScriptBlock]::Create(@"function Get-ProfilesFrom { $function:Get-ProfilesFrom }"@)
 		
 		Start-Job -InitializationScript $init -ScriptBlock {
 			# Each job gets profiles, and returns a modified $comp object with the profiles included
 			# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-			$comp = Get-ProfilesFrom $comp
+			$comp = GetProfilesFrom $comp
 			return $comp
 		} | Out-Null
 	}
