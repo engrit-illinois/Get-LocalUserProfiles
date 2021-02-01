@@ -36,18 +36,21 @@ function Get-LocalUserProfiles {
 		[string]$Indent = "    ",
 		
 		[ValidateSet("ComputersSummary","ComputersSummaryExtended","FlatProfiles")]
-		[string]$CsvType = "Summary",
+		[string]$CsvType = "ComputersSummary",
 		
 		[switch]$ReturnObject,
 		
 		[ValidateSet("ComputersSummary","ComputersSummaryExtended","FlatProfiles")]
-		[string]$ReturnObjectType = "Summary",
+		[string]$ReturnObjectType = "ComputersSummary",
 		
 		[ValidateSet("Name","_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan")]
 		[string]$SortSummaryBy = "_NumberOfProfiles",
 		
 		[int]$CIMTimeoutSec = 60
 	)
+	
+	$SCRIPT_VERSION = "v1.2"
+	$SYSTEM_PROFILE_QUERY = "*$env:SystemRoot*"
 	
 	function log {
 		param (
@@ -153,7 +156,7 @@ function Get-LocalUserProfiles {
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
-			$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+			$profiles = $profiles | Where { $_.LocalPath -notlike $SYSTEM_PROFILE_QUERY }
 		}
 		
 		log "Found $(@($profiles).count) profiles." -L 2 -V 1
@@ -190,7 +193,7 @@ function Get-LocalUserProfiles {
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
-			$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+			$profiles = $profiles | Where { $_.LocalPath -notlike $SYSTEM_PROFILE_QUERY }
 		}
 		
 		#log "Found $(@($profiles).count) profiles." -L 2 -V 1
