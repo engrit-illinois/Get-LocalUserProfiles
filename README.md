@@ -17,13 +17,13 @@ See below for more detailed [context](#context) and caveats.
 
 # Parameters
 
-### -Computers <string[]>
+### -Computers \<string[]\>
 Required string array.  
 Array of computer names and/or computer name wildcard queries to poll.  
 Computers must exist in AD, within the OU specified by `-OUDN`.  
 e.g. `-Computers "gelib-4c-*","eh-406b1-01","mel-1001-*"`  
 
-### -OUDN <string>
+### -OUDN \<string\>
 Optional string.  
 The OU in which computers given by the value of `-Computers` must exist.  
 Computers not found in this OU will be ignored.  
@@ -33,7 +33,7 @@ Default is `OU=Desktops,OU=Engineering,OU=Urbana,DC=ad,DC=uillinois,DC=edu`.
 Optional switch.  
 If specified, output will be logged to a file at the path specified by `-LogPath`.  
 
-### -LogPath <string>
+### -LogPath \<string\>
 Optional string.  
 The full path to the log file that will be created (if `-Log` was specified).  
 Default is `c:\engrit\logs\Get-LocalUserProfiles_yyyy-MM-dd_HH-mm-ss.log`.  
@@ -42,12 +42,12 @@ Default is `c:\engrit\logs\Get-LocalUserProfiles_yyyy-MM-dd_HH-mm-ss.log`.
 Optional switch.  
 If specified, results will be output to a CSV-formatted file at the path specified by `-CsvPath`.  
 
-### -CsvPath <string>
+### -CsvPath \<string\>
 Optional string.  
 The full path to the CSV file that will be created (if `-Csv` was specified).  
 Default is `c:\engrit\logs\Get-LocalUserProfiles_yyyy-MM-dd_HH-mm-ss.csv`.  
 
-### -Verbosity <int>
+### -Verbosity \<int\>
 Optional integer.  
 The level of verbosity to include in output logged to the console and logfile.  
 Currently not significantly implemented.  
@@ -57,7 +57,7 @@ Default is `0`.
 Optional switch.  
 If specified, progress output is not logged to the console.  
 
-### -MaxAsyncJobs <int>
+### -MaxAsyncJobs \<int\>
 Optional integer.  
 The maximum number of asynchronous jobs allowed to be spawned.  
 The script spawns a unique asynchronous process for each computer that it will poll, which significantly cuts down the runtime.  
@@ -84,11 +84,11 @@ If specified, each time a computer is polled, the list of targeted profiles foun
 Useful for getting a feel for what the profiles look like while the script is still running.  
 Not compatible with any value of `-MaxAsyncJobs` greater than `0`. Will be ignored in this case.  
 
-### -Indent <string>
+### -Indent \<string\>
 The string used as an indent, when indenting log entries.  
 Default is four space characters.  
 
-### -CsvType <"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles">
+### -CsvType \<"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles"\>
 Optional string from a defined set of strings.  
 The type of output saved to the CSV file (if `-Csv` was specified).  
 Values are:
@@ -102,7 +102,7 @@ Optional switch.
 If specified, the module returns an object to the pipeline, which contains all of the data gathered during execution.  
 The format of the data in the returned object is controlled by `-ReturnObjectType`.  
 
-### -ReturnObjectType <"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles">
+### -ReturnObjectType \<"ComputersSummary" | "ComputersSummaryExtended" | "FlatProfiles"\>
 Optional string from a defined set of strings.  
 The type of output returned as an object to the pipeline (if `-ReturnObject` was specified).  
 Values are:
@@ -112,13 +112,13 @@ Values are:
 - `FlatProfiles`: Outputs an array containing every targeted profile found, across all computers. Each array item contains all of the profile's data, including the name of the computer from whence it came.  
 Default is `ComputersSummary`.  
 
-### -SortSummaryBy <"Name" | "_NumberOfProfiles" | "_YoungestProfilePath" | "_YoungestProfileDate" | "_OldestProfileDate" | "_OldestProfilePath" | "_LargestProfileTimeSpan">
+### -SortSummaryBy \<"Name" | "_NumberOfProfiles" | "_YoungestProfilePath" | "_YoungestProfileDate" | "_OldestProfileDate" | "_OldestProfilePath" | "_LargestProfileTimeSpan"\>
 Optional string from a defined set of strings.  
 Determines which property by which to sort the summary table that is printed to the console after the module finishes.  
 Default is `_NumberOfProfiles`.  
 Note: the summary table (and all other console output) will not be displayed if `-NoConsoleOutput` is specified.  
 
-### -CIMTimeoutSec <int>
+### -CIMTimeoutSec \<int\>
 Optional integer.  
 The number of seconds to wait before timing out `Get-CIMInstance` operations (the mechanism by which the script retrieves profile info from remote computers).  
 Default is 60.  
