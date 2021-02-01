@@ -44,7 +44,7 @@ WIP
 ### -MaxAsyncJobs
 WIP
 
-### -IncludeRootProfiles
+### -IncludeSystemProfiles
 WIP
 
 ### -PrintProfilesInRealtime
@@ -53,10 +53,16 @@ WIP
 ### -Indent
 WIP
 
+### -CsvType
+WIP
+
 ### -ReturnObject
 WIP
 
 ### -ReturnObjectType
+WIP
+
+### -SortSummaryBy
 WIP
 
 ### -CIMTimeoutSec
