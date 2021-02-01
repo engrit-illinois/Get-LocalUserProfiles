@@ -226,9 +226,8 @@ function Get-LocalUserProfiles {
 		log "Receiving jobs..." -L 1
 		$count = 1
 		foreach($job in Get-Job) {
-			log "Recieving job #$count..." -L 2
 			$comp = Receive-Job $job
-			log "This job is for computer `"$($comp.Name)`"." -L 3
+			log "Recieved job for computer `"$($comp.Name)`"." -L 2
 			$newComps += $comp
 			$count += 1
 		}
