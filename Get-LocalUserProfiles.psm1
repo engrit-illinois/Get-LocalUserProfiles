@@ -121,7 +121,12 @@ function Get-LocalUserProfiles {
 		$comps
 	}
 
-	function Get-ProfilesFrom($comp) {
+	function Get-ProfilesFrom {
+		# Needed so this can be used in Start-Job and
+		# passed parameters
+		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
+		param($comp)
+		
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..." -L 1
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
@@ -161,12 +166,10 @@ function Get-LocalUserProfiles {
 		}
 		
 		# After waiting, start the job
-		Start-Job {
-			# Each job gets profiles, and returns a modified $comp object with the profiles included
-			# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-			$comp = Get-ProfilesFrom $comp
-			return $comp
-		} | Out-Null
+		# Each job gets profiles, and returns a modified $comp object with the profiles included
+		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
+		
+		Start-Job -ScriptBlock ${function:Get-ProfilesFrom} -ArgumentList $comp | Out-Null
 	}
 	
 	function Get-ProfilesAsync($comps) {
