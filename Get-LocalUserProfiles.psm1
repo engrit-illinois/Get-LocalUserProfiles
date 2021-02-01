@@ -167,6 +167,7 @@ function Get-LocalUserProfiles {
 		Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock {
 			
 			param(
+				$comp,
 				$CIMTimeoutSec,
 				$IncludeSystemProfiles
 			)
