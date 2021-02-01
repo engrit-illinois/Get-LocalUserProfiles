@@ -56,6 +56,9 @@ WIP
 ### -ReturnObject
 WIP
 
+### -ReturnObjectType
+WIP
+
 ### -CIMTimeoutSec
 WIP
 

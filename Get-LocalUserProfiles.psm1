@@ -20,11 +20,12 @@ function Get-LocalUserProfiles {
 		
 		[switch]$NoConsoleOutput,
 		
+		# Not implemented yet
 		[int]$MaxAsyncJobs = 1,
 		
 		# System root profiles ignored by default because this cmdlet's output will
 		# likely be used to delete profiles, and we don't want to accidentally enable that mistake
-		[switch]$IncludeRootProfiles,
+		[switch]$IncludeSystemProfiles,
 		
 		# Outputs profiles gathered from each computer as they are gathered
 		# Might be all kinds of weird with asynchronous jobs
@@ -33,6 +34,9 @@ function Get-LocalUserProfiles {
 		[string]$Indent = "    ",
 		
 		[switch]$ReturnObject,
+		
+		[ValidateSet("Summary","AllProfiles")]
+		[string]$ReturnObjectType = "Summary",
 		
 		[int]$CIMTimeoutSec = 60
 	)
@@ -122,8 +126,8 @@ function Get-LocalUserProfiles {
 		log "Getting profiles from `"$compName`"..." -L 1
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		
-		# Ignore system root profile by default
-		if(!$IncludeRootProfiles) {
+		# Ignore system profiles by default
+		if(!$IncludeSystemProfiles) {
 			$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
 		}
 		
@@ -149,52 +153,58 @@ function Get-LocalUserProfiles {
 		}
 	}
 	
+	function Start-AsyncJobGetProfilesFrom($comp) {
+		# If there are already the max number of jobs running, then wait
+		$running = @(Get-Job | Where { $_.State -eq 'Running' })
+		if($running.Count -ge $MaxAsyncJobs) {
+			$running | Wait-Job -Any | Out-Null
+		}
+		
+		# After waiting, start the job
+		Start-Job {
+			# Each job gets profiles, and returns a modified $comp object with the profiles included
+			# We'll collect each new $comp object into the $comps array when we use Recieve-Job
+			$comp = Get-ProfilesFrom $comp
+			return $comp
+		} | Out-Null
+	}
+	
+	function Get-ProfilesAsync($comps) {
+		# Async example: https://stackoverflow.com/a/24272099/994622
+		
+		# For each computer start an asynchronous job
+		foreach ($comp in $comps) {
+			Start-AsyncJobGetProfilesFrom $comp
+		}
+		
+		# Wait for all the jobs to finish
+		Wait-Job * | Out-Null
+
+		# Once all jobs are done, start processing their output
+		# We can't directly write over each $comp in $comps, because we don't know which one is which without doing a bunch of extra logic
+		# So just make a new $comps instead
+		$newComps = @()
+		foreach($job in Get-Job) {
+			$comp = Receive-Job $job
+			$comps += $comp
+		}
+		
+		# Remove all the jobs
+		Remove-Job -State Completed
+		
+		$newComps
+	}
+	
 	function Get-Profiles($comps) {
 		log "Retrieving profiles..."
 		
-		if($Async -lt 2) {
+		if($MaxAsyncJobs -lt 2) {
 			foreach($comp in $comps) {
-				$comp = Get-ProfilesFrom($comp)
+				$comp = Get-ProfilesFrom $comp
 			}
 		}
 		else {
-			# Async example: https://stackoverflow.com/a/24272099/994622
-			
-			# For each computer start an asynchronous job
-			foreach ($comp in $comps) {
-				
-				# If there are already the max number of jobs running, then wait
-				$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-				if($running.Count -ge $MaxAsyncJobs) {
-					$running | Wait-Job -Any | Out-Null
-				}
-				
-				# After waiting, start the job
-				Start-Job {
-					# Each job gets profiles, and returns a modified $comp object with the profiles included
-					# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-					$comp = Get-ProfilesFrom($comp)
-					return $comp
-				} | Out-Null
-			}
-			
-			# Wait for all the jobs to finish
-			Wait-Job * | Out-Null
-
-			# Once all jobs are done, start processing their output
-			# We can't directly write over each $comp in $comps, because we don't know which one is which without doing a bunch of extra logic
-			# So just make a new $comps instead
-			$newComps = @()
-			foreach($job in Get-Job) {
-				$comp = Receive-Job $job
-				$comps += $comp
-			}
-			
-			# Remove all the jobs
-			Remove-Job -State Completed
-			
-			# Then overwrite the old $comps
-			$comps = $newComps
+			$comps = Get-ProfilesAsync $comps
 		}
 		
 		log "Done retrieving profiles." -V 2
@@ -222,6 +232,14 @@ function Get-LocalUserProfiles {
 				if($profile.LastUseTime -gt $youngestProfileDate) {
 					$youngestProfileDate = $profile.LastUseTime
 					$youngestProfilePath = $profile.LocalPath
+				}
+				if(
+					($profile.PSComputerName -eq $null) -or
+					($profile.PSComputerName -eq "")
+				) {
+					if($comp.Name -eq $env:Computername) {
+						$profile.PSComputerName = $comp.Name
+					}
 				}
 			}
 			
@@ -265,10 +283,12 @@ function Get-LocalUserProfiles {
 		$comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort "_OldestProfileDate",Name
 	}
 	
-	function Return-Comps($comps) {
-		if($ReturnObject) {
-			$comps
+	function Get-AllProfiles($comps) {
+		$allProfiles = @()
+		foreach($comp in $comps) {
+			$allProfiles += @($comp._Profiles)
 		}
+		$allProfiles
 	}
 
 	function Do-Stuff {
@@ -280,7 +300,16 @@ function Get-LocalUserProfiles {
 		
 		Print-Profiles $outputComps
 		Export-Profiles $outputComps
-		Return-Comps $outputComps
+		
+		if($ReturnObject) {
+			if($ReturnObjectType -eq "Summary") {
+				$outputComps
+			}
+			elseif($ReturnObjectType -eq "AllProfiles") {
+				$allProfiles = Get-AllProfiles $comps
+				$allProfiles
+			}
+		}
 	}
 	
 	Do-Stuff
