@@ -131,7 +131,8 @@ function Get-LocalUserProfiles {
 		param($comp)
 		
 		$compName = $comp.Name
-		log "Getting profiles from `"$compName`"..." -L 1
+		#log "Getting profiles from `"$compName`"..." -L 1
+		Write-Host "Getting profiles from `"$compName`"..."
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		
 		# Ignore system profiles by default
