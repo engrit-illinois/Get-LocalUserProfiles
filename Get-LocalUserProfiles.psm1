@@ -178,7 +178,7 @@ function Get-LocalUserProfiles {
 		}
 	}
 	
-	function Start-AsyncGetProfilesFrom2($comp) {
+	function Start-AsyncGetProfilesFrom($comp) {
 		# If there are already the max number of jobs running, then wait
 		$running = @(Get-Job | Where { $_.State -eq 'Running' })
 		if($running.Count -ge $MaxAsyncJobs) {
@@ -213,10 +213,11 @@ function Get-LocalUserProfiles {
 		
 		# For each computer start an asynchronous job
 		log "Starting async jobs to get profiles from computers..." -L 1
+		log "-MaxAsyncJobs is set to $($MaxAsyncJobs)." -L 2
 		$count = 0
 		foreach ($comp in $comps) {
 			log $comp.Name -L 2
-			Start-AsyncGetProfilesFrom2 $comp
+			Start-AsyncGetProfilesFrom $comp
 			$count += 1
 		}
 		log "Started $count jobs." -L 1
