@@ -121,7 +121,7 @@ function Get-LocalUserProfiles {
 		$comps
 	}
 
-	$func = { function Get-ProfilesFrom {
+	function Get-ProfilesFrom {
 		# Needed so this can be used in Start-Job and
 		# passed parameters
 		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
@@ -143,7 +143,7 @@ function Get-LocalUserProfiles {
 		Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"." -L 1 -V 2
 		$comp
-	} }
+	}
 	
 	function Print-ProfilesFrom($comp) {
 		if($PrintProfilesInRealtime) {
@@ -170,8 +170,14 @@ function Get-LocalUserProfiles {
 		# After waiting, start the job
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
+		$init = { function Get-ProfilesFrom { $function:Get-ProfilesFrom } }
 		
-		Start-Job -InitializationScript $func -ScriptBlock ${function:Get-ProfilesFrom} -ArgumentList $comp | Out-Null
+		Start-Job -InitializationScript $init -ScriptBlock {
+			# Each job gets profiles, and returns a modified $comp object with the profiles included
+			# We'll collect each new $comp object into the $comps array when we use Recieve-Job
+			$comp = Get-ProfilesFrom $comp
+			return $comp
+		} | Out-Null
 	}
 	
 	function Get-ProfilesAsync($comps) {
