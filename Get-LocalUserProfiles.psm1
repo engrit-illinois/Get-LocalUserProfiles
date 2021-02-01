@@ -121,18 +121,9 @@ function Get-LocalUserProfiles {
 		$comps
 	}
 
-	function GetProfilesFrom {
-		# Needed so this can be used in Start-Job and
-		# passed parameters
-		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
-		# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
-		# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
-		# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
-		param($comp)
-		
+	function Get-ProfilesFrom($comp) {
 		$compName = $comp.Name
-		#log "Getting profiles from `"$compName`"..." -L 1
-		Write-Host "Getting profiles from `"$compName`"..."
+		log "Getting profiles from `"$compName`"..." -L 1
 		$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		
 		# Ignore system profiles by default
@@ -172,14 +163,40 @@ function Get-LocalUserProfiles {
 		# After waiting, start the job
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-		$init = { function GetProfilesFrom { $function:GetProfilesFrom } }
-		#$init = [ScriptBlock]::Create(@"function Get-ProfilesFrom { $function:Get-ProfilesFrom }"@)
 		
-		Start-Job -InitializationScript $init -ScriptBlock {
+		Start-Job -ScriptBlock -ArgumentList $CIMTimeoutSec,$IncludeSystemProfiles {
+			
+			param(
+				$CIMTimeoutSec,
+				$IncludeSystemProfiles
+			)
+			
 			# Each job gets profiles, and returns a modified $comp object with the profiles included
 			# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-			$comp = GetProfilesFrom $comp
-			return $comp
+			
+			# Trying to use script-level functions in Start-Job ScriptBlocks is non-trivial:
+			# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
+			# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
+			# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
+			# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
+			
+			#$comp = GetProfilesFrom $comp
+			#return $comp
+			
+			$compName = $comp.Name
+			#log "Getting profiles from `"$compName`"..." -L 1
+			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
+			
+			# Ignore system profiles by default
+			if(!$IncludeSystemProfiles) {
+				$profiles = $profiles | Where { $_.LocalPath -notlike "*$env:SystemRoot*" }
+			}
+			
+			log "Found $(@($profiles).count) profiles." -L 2 -V 1
+			$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
+			Print-ProfilesFrom($comp)
+			log "Done getting profiles from `"$compname`"." -L 1 -V 2
+			$comp
 		} | Out-Null
 	}
 	
@@ -214,7 +231,7 @@ function Get-LocalUserProfiles {
 		
 		if($MaxAsyncJobs -lt 2) {
 			foreach($comp in $comps) {
-				$comp = GetProfilesFrom $comp
+				$comp = Get-ProfilesFrom $comp
 			}
 		}
 		else {
