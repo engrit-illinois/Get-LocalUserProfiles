@@ -127,6 +127,7 @@ function Get-LocalUserProfiles {
 		# https://stackoverflow.com/questions/7162090/how-do-i-start-a-job-of-a-function-i-just-defined
 		# https://social.technet.microsoft.com/Forums/windowsserver/en-US/b68c1c68-e0f0-47b7-ba9f-749d06621a2c/calling-a-function-using-startjob?forum=winserverpowershell
 		# https://stuart-moore.com/calling-a-powershell-function-in-a-start-job-script-block-when-its-defined-in-the-same-script/
+		# https://stackoverflow.com/questions/15520404/how-to-call-a-powershell-function-within-the-script-from-start-job
 		param($comp)
 		
 		$compName = $comp.Name
@@ -170,7 +171,8 @@ function Get-LocalUserProfiles {
 		# After waiting, start the job
 		# Each job gets profiles, and returns a modified $comp object with the profiles included
 		# We'll collect each new $comp object into the $comps array when we use Recieve-Job
-		$init = { function Get-ProfilesFrom { $function:Get-ProfilesFrom } }
+		$init = { function Get-ProfilesFrom { $function:"Get-ProfilesFrom" } }
+		#$init = [ScriptBlock]::Create(@"function Get-ProfilesFrom { $function:Get-ProfilesFrom }"@)
 		
 		Start-Job -InitializationScript $init -ScriptBlock {
 			# Each job gets profiles, and returns a modified $comp object with the profiles included
