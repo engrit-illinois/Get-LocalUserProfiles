@@ -1,6 +1,6 @@
 # Summary
 
-This Powershell module pulls information about local user profiles from an array of given computers.  
+This Powershell module pulls information about local user profiles from a given array of computers.  
 
 It will dump some of this info about all profiles found on all given computers to the screen. Additionally it will optionally log data to a log file, and/or a CSV file, as well as return an object containing all the data.  
 
