@@ -205,7 +205,7 @@ function Get-LocalUserProfiles {
 			$errorMsg = $_.Exception.Message
 		}
 		if($errorMsg) {
-			$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $error -Force
+			$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $errorMsg -Force
 		}
 		
 		# Ignore system profiles by default
