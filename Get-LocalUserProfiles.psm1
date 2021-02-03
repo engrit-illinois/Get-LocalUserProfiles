@@ -183,7 +183,7 @@ function Get-LocalUserProfiles {
 		
 		function log($msg) {
 			# Any output from a job, even Write-Host, will only show up when you Receive-Job
-			Write-Host $msg
+			#Write-Host $msg
 		}
 	
 		function Log-Error($e) {
