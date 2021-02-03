@@ -52,6 +52,7 @@ function Get-LocalUserProfiles {
 	)
 	
 	$SCRIPT_VERSION = "v1.2"
+	$ASYNC_JOBNAME_BASE = "Job_Get-LocalUserProfiles"
 	
 	function log {
 		param (
@@ -250,7 +251,11 @@ function Get-LocalUserProfiles {
 		#>
 		
 		$scriptBlock = Get-Content function:AsyncGet-ProfilesFrom
-		Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock
+		
+		$ts = Get-Date -Format "yyyy-MM-dd_HH-mm-ss-ffff"
+		$compName = $comp.name
+		$uniqueJobName = "$($ASYNC_JOBNAME_BASE)_$($compName)_$($ts)"
+		Start-Job -Name $uniqueJobName -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock
 	}
 	
 	function AsyncGet-Profiles($comps) {
@@ -278,17 +283,16 @@ function Get-LocalUserProfiles {
 		
 		log "Receiving jobs..." -L 1
 		$count = 0
-		foreach($job in Get-Job) {
+		$jobNameQuery = "$($ASYNC_JOBNAME_BASE)_*"
+		foreach($job in Get-Job -Name $jobNameQuery) {
 			$comp = Receive-Job $job
 			log "Received job for computer `"$($comp.Name)`"." -L 2
 			$newComps += $comp
 			$count += 1
+			log "Removing job..." -L 3
+			$job | Remove-Job
 		}
 		log "Received $count jobs." -L 1
-		
-		# Remove all the jobs
-		log "Removing jobs..."
-		Remove-Job -State Completed
 		
 		$newComps
 	}
