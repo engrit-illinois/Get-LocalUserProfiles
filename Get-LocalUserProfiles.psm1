@@ -182,7 +182,7 @@ function Get-LocalUserProfiles {
 		# For simple scripts like this, I'll have to accept not getting any real-time feedback from async jobs.
 			
 		$compName = $comp.Name
-		#log "Getting profiles from `"$compName`"..." -L 1
+		log "Getting profiles from `"$compName`"..." -L 1
 		
 		$error = ""
 		try {
