@@ -246,7 +246,7 @@ function Get-LocalUserProfiles {
 		#>
 		
 		$scriptBlock = Get-Content function:AsyncGet-ProfilesFrom
-		$job = Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock
+		Start-Job -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock
 	}
 	
 	function AsyncGet-Profiles($comps) {
@@ -277,15 +277,14 @@ function Get-LocalUserProfiles {
 		foreach($job in Get-Job) {
 			$comp = Receive-Job $job
 			log "Received job for computer `"$($comp.Name)`"." -L 2
-			
-			log "Removing job..." -L 3
-			$job | Remove-Job
-			
 			$newComps += $comp
 			$count += 1
-			$comp = $null
 		}
 		log "Received $count jobs." -L 1
+		
+		# Remove all the jobs
+		log "Removing jobs..."
+		Remove-Job -State Completed
 		
 		$newComps
 	}
