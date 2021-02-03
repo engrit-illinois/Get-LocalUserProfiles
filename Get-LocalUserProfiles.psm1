@@ -180,16 +180,25 @@ function Get-LocalUserProfiles {
 		# Jobs might still be able to write to the log file, but it would be out of order and might cause race conditions with different processes accessing the same log file at the same time.
 		# Also, any external functions and variable must be passed into the job since it's a separate process. For functions which call other functions and variables, this quickly becomes infeasible.
 		# For simple scripts like this, I'll have to accept not getting any real-time feedback from async jobs.
+		
+		function log($msg) {
+			Write-Host $msg
+		}
+	
+		function Log-Error($e) {
+			log "$($e.Exception.Message)"
+			log "$($e.InvocationInfo.PositionMessage.Split("`n")[0])"
+		}
 			
 		$compName = $comp.Name
-		Write-Host "Getting profiles from `"$compName`"..." -L 1
+		log "Getting profiles from `"$compName`"..."
 		
 		$error = ""
 		try {
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		}
 		catch {
-			Log-Error $_ 2
+			Log-Error $_
 			$error = $_.Exception.Message
 		}
 		$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $error -Force
@@ -199,10 +208,9 @@ function Get-LocalUserProfiles {
 			$profiles = $profiles | Where { $_.LocalPath -notlike $SystemRootProfileQuery }
 		}
 		
-		Write-Host "Found $(@($profiles).count) profiles." -L 2 -V 1
+		log "Found $(@($profiles).count) profiles."
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
-		#Print-ProfilesFrom($comp)
-		Write-Host "Done getting profiles from `"$compname`"." -L 1 -V 2
+		log "Done getting profiles from `"$compname`"."
 		$comp
 	}
 	
@@ -397,7 +405,7 @@ function Get-LocalUserProfiles {
 	}
 	
 	function Get-SummaryComps($comps) {
-		$comps | Select Name,"_NumberOfProfiles","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort $SortSummaryBy
+		$comps | Select Name,"_NumberOfProfiles","_Error","_YoungestProfilePath","_YoungestProfileDate","_OldestProfileDate","_OldestProfilePath","_LargestProfileTimeSpan" | Sort $SortSummaryBy
 	}
 	
 	function Get-FlatProfiles($comps) {
