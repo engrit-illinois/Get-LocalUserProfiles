@@ -182,6 +182,7 @@ function Get-LocalUserProfiles {
 		# For simple scripts like this, I'll have to accept not getting any real-time feedback from async jobs.
 		
 		function log($msg) {
+			# Any output from a job, even Write-Host, will only show up when you Receive-Job
 			#Write-Host $msg
 		}
 	
@@ -293,16 +294,18 @@ function Get-LocalUserProfiles {
 		log "Receiving jobs..." -L 1
 		$count = 0
 		$jobNameQuery = "$($ASYNC_JOBNAME_BASE)_*"
-		foreach($job in Get-Job -Name $jobNameQuery) {
-			$comp = Receive-Job $job
+		foreach($job in Receive-Job -Name $jobNameQuery -AutoRemoveJob) {
+			$comp = $job
+			Write-Host $comp
 			log "Received job for computer `"$($comp.Name)`"." -L 2
 			$newComps += $comp
 			$count += 1
 		}
 		log "Received $count jobs." -L 1
 		
-		log "Removing jobs..." -L 1
-		Remove-Job -Name $jobNameQuery
+		# Using Receive-Job -AutoRemoveJob instead
+		#log "Removing jobs..." -L 1
+		#Remove-Job -Name $jobNameQuery
 		
 		$newComps
 	}
