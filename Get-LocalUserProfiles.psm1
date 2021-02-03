@@ -174,6 +174,8 @@ function Get-LocalUserProfiles {
 			$IncludeSystemProfiles
 		)
 		
+		write-host "test3"
+		
 		# Note: cannot do any logging to the console from jobs (i.e. log() and Print-ProfilesFrom()), because jobs run in another process.
 		# Might be able to capture this with a bunch of extra code checking each job while it's still running, but that's totally not worth it for short jobs
 		# Jobs might still be able to write to the log file, but it would be out of order and might cause race conditions with different processes accessing the same log file at the same time.
@@ -202,6 +204,8 @@ function Get-LocalUserProfiles {
 		#Print-ProfilesFrom($comp)
 		#log "Done getting profiles from `"$compname`"." -L 1 -V 2
 		$comp
+		
+		write-host "test4"
 	}
 	
 	function Print-ProfilesFrom($comp) {
