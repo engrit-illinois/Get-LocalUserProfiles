@@ -275,15 +275,16 @@ function Get-LocalUserProfiles {
 		log "Receiving jobs..." -L 1
 		$count = 0
 		foreach($job in Get-Job) {
-			$compReceived = Receive-Job $job
+			$comp = Receive-Job $job
+			$job | Remove-Job
 			log "Received job for computer `"$($comp.Name)`"." -L 2
-			$newComps += $compReceived
+			$newComps += $comp
 			$count += 1
 		}
 		log "Received $count jobs." -L 1
 		
-		# Remove all the jobs
-		log "Removing jobs..."
+		# Remove any lingering jobs
+		log "Removing orphaned jobs..."
 		Remove-Job -State Completed
 		
 		$newComps
