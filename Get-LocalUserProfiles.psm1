@@ -23,7 +23,7 @@ function Get-LocalUserProfiles {
 		# Maximum number of asynchronous jobs allowed to run at once
 		# This is to limit how many computers are simultaneously being polled for profile data over the network
 		# Set to 0 to disable the asynchronous mechanism entirely and just do it sequentially
-		[int]$MaxAsyncJobs = 10,
+		[int]$MaxAsyncJobs = 50,
 		
 		# System root profiles ignored by default because this cmdlet's output will
 		# likely be used to delete profiles, and we don't want to accidentally enable that mistake
