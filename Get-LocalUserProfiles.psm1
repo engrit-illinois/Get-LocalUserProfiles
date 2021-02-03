@@ -183,7 +183,7 @@ function Get-LocalUserProfiles {
 		$compName = $comp.Name
 		#log "Getting profiles from `"$compName`"..." -L 1
 		
-		write-host "test3"
+		write-host "test1"
 		
 		# TODO: wrap this in try/catch and save any errors to a new custom property
 		$error = ""
@@ -194,7 +194,7 @@ function Get-LocalUserProfiles {
 			
 		}
 		
-		write-host "test4"
+		write-host "test2"
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
@@ -279,9 +279,7 @@ function Get-LocalUserProfiles {
 		log "Receiving jobs..." -L 1
 		$count = 0
 		foreach($job in Get-Job) {
-			log "test1"
 			$comp = Receive-Job $job
-			log "test2"
 			log "Received job for computer `"$($comp.Name)`"." -L 2
 			$newComps += $comp
 			$count += 1
