@@ -184,7 +184,6 @@ function Get-LocalUserProfiles {
 		$compName = $comp.Name
 		#log "Getting profiles from `"$compName`"..." -L 1
 		
-		# TODO: wrap this in try/catch and save any errors to a new custom property
 		$error = ""
 		try {
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
