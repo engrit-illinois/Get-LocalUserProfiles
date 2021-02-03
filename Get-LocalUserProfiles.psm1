@@ -184,18 +184,16 @@ function Get-LocalUserProfiles {
 		$compName = $comp.Name
 		#log "Getting profiles from `"$compName`"..." -L 1
 		
-		write-host "test1"
-		
 		# TODO: wrap this in try/catch and save any errors to a new custom property
 		$error = ""
 		try {
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		}
 		catch {
-			
+			Log-Error $_ 2
+			$error = $_.Exception.Message
 		}
-		
-		write-host "test2"
+		$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $error -Force
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
@@ -289,10 +287,11 @@ function Get-LocalUserProfiles {
 			log "Received job for computer `"$($comp.Name)`"." -L 2
 			$newComps += $comp
 			$count += 1
-			log "Removing job..." -L 3
-			$job | Remove-Job
 		}
 		log "Received $count jobs." -L 1
+		
+		log "Removing jobs..." -L 1
+		Remove-Job -Name $jobNameQuery
 		
 		$newComps
 	}
