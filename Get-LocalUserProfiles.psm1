@@ -193,7 +193,7 @@ function Get-LocalUserProfiles {
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..."
 		
-		$error = ""
+		$errorMsg = ""
 		try {
 			log "test1"
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
@@ -202,7 +202,7 @@ function Get-LocalUserProfiles {
 		catch {
 			log "Error calling Get-CIMInstance on computer `"$compname`"!"
 			Log-Error $_
-			$error = $_.Exception.Message
+			$errorMsg = $_.Exception.Message
 		}
 		$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $error -Force
 		
