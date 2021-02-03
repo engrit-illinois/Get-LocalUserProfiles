@@ -182,7 +182,7 @@ function Get-LocalUserProfiles {
 		# For simple scripts like this, I'll have to accept not getting any real-time feedback from async jobs.
 			
 		$compName = $comp.Name
-		log "Getting profiles from `"$compName`"..." -L 1
+		Write-Host "Getting profiles from `"$compName`"..." -L 1
 		
 		$error = ""
 		try {
@@ -199,10 +199,10 @@ function Get-LocalUserProfiles {
 			$profiles = $profiles | Where { $_.LocalPath -notlike $SystemRootProfileQuery }
 		}
 		
-		#log "Found $(@($profiles).count) profiles." -L 2 -V 1
+		Write-Host "Found $(@($profiles).count) profiles." -L 2 -V 1
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
 		#Print-ProfilesFrom($comp)
-		#log "Done getting profiles from `"$compname`"." -L 1 -V 2
+		Write-Host "Done getting profiles from `"$compname`"." -L 1 -V 2
 		$comp
 	}
 	
