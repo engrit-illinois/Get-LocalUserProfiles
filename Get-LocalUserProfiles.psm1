@@ -197,7 +197,7 @@ function Get-LocalUserProfiles {
 		# Note to self: $error is a reserved variable name
 		# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables
 		try {
-			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
+			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec -ErrorAction "Stop"
 		}
 		catch {
 			log "Error calling Get-CIMInstance on computer `"$compname`"!"
