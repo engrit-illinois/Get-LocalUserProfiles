@@ -196,7 +196,6 @@ function Get-LocalUserProfiles {
 		
 		# Note to self: $error is a reserved variable name
 		# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables
-		$errorMsg = ""
 		try {
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
 		}
@@ -205,7 +204,9 @@ function Get-LocalUserProfiles {
 			Log-Error $_
 			$errorMsg = $_.Exception.Message
 		}
-		$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $error -Force
+		if($errorMsg) {
+			$comp | Add-Member -NotePropertyName "_Error" -NotePropertyValue $error -Force
+		}
 		
 		# Ignore system profiles by default
 		if(!$IncludeSystemProfiles) {
@@ -213,7 +214,9 @@ function Get-LocalUserProfiles {
 		}
 		
 		log "Found $(@($profiles).count) profiles."
-		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
+		if($profiles) {
+			$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
+		}
 		#Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"."
 		$comp
@@ -265,7 +268,7 @@ function Get-LocalUserProfiles {
 		$ts = Get-Date -Format "yyyy-MM-dd_HH-mm-ss-ffff"
 		$compName = $comp.name
 		$uniqueJobName = "$($ASYNC_JOBNAME_BASE)_$($compName)_$($ts)"
-		Start-Job -Name $uniqueJobName -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock
+		Start-Job -Name $uniqueJobName -ArgumentList $comp,$CIMTimeoutSec,$IncludeSystemProfiles -ScriptBlock $scriptBlock | Out-Null
 	}
 	
 	function AsyncGet-Profiles($comps) {
