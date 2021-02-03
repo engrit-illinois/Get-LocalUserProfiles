@@ -182,7 +182,7 @@ function Get-LocalUserProfiles {
 		# For simple scripts like this, I'll have to accept not getting any real-time feedback from async jobs.
 		
 		function log($msg) {
-			Write-Host $msg
+			#Write-Host $msg
 		}
 	
 		function Log-Error($e) {
@@ -193,11 +193,11 @@ function Get-LocalUserProfiles {
 		$compName = $comp.Name
 		log "Getting profiles from `"$compName`"..."
 		
+		# Note to self: $error is a reserved variable name
+		# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables
 		$errorMsg = ""
 		try {
-			log "test1"
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec
-			log "test2"
 		}
 		catch {
 			log "Error calling Get-CIMInstance on computer `"$compname`"!"
@@ -213,6 +213,7 @@ function Get-LocalUserProfiles {
 		
 		log "Found $(@($profiles).count) profiles."
 		$comp | Add-Member -NotePropertyName "_Profiles" -NotePropertyValue $profiles -Force
+		#Print-ProfilesFrom($comp)
 		log "Done getting profiles from `"$compname`"."
 		$comp
 	}
