@@ -283,8 +283,9 @@ function Get-LocalUserProfiles {
 		log "Started $count jobs." -L 1
 		
 		# Wait for all the jobs to finish
+		$jobNameQuery = "$($ASYNC_JOBNAME_BASE)_*"
 		log "Waiting for async jobs to finish..." -L 1
-		Wait-Job * | Out-Null
+		Get-Job -Name $jobNameQuery | Wait-Job | Out-Null
 
 		# Once all jobs are done, start processing their output
 		# We can't directly write over each $comp in $comps, because we don't know which one is which without doing a bunch of extra logic
@@ -293,8 +294,7 @@ function Get-LocalUserProfiles {
 		
 		log "Receiving jobs..." -L 1
 		$count = 0
-		$jobNameQuery = "$($ASYNC_JOBNAME_BASE)_*"
-		foreach($job in Receive-Job -Name $jobNameQuery -AutoRemoveJob) {
+		foreach($job in Receive-Job -Name $jobNameQuery) {
 			$comp = $job
 			Write-Host $comp
 			log "Received job for computer `"$($comp.Name)`"." -L 2
@@ -303,9 +303,8 @@ function Get-LocalUserProfiles {
 		}
 		log "Received $count jobs." -L 1
 		
-		# Using Receive-Job -AutoRemoveJob instead
-		#log "Removing jobs..." -L 1
-		#Remove-Job -Name $jobNameQuery
+		log "Removing jobs..." -L 1
+		Remove-Job -Name $jobNameQuery
 		
 		$newComps
 	}
