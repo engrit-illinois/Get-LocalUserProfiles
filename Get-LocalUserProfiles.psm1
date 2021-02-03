@@ -197,6 +197,7 @@ function Get-LocalUserProfiles {
 		# Note to self: $error is a reserved variable name
 		# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables
 		try {
+			# -ErrorAction Stope required for catch{} to get anything, otherwise Get-WmiObject and Get-CimInstance do not throw terminating errors by default
 			$profiles = Get-CIMInstance -ComputerName $compName -ClassName "Win32_UserProfile" -OperationTimeoutSec $CIMTimeoutSec -ErrorAction "Stop"
 		}
 		catch {
