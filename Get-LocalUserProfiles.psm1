@@ -280,10 +280,10 @@ function Get-LocalUserProfiles {
 			
 			log "Removing job..." -L 3
 			$job | Remove-Job
-			$comp = $null
 			
 			$newComps += $comp
 			$count += 1
+			$comp = $null
 		}
 		log "Received $count jobs." -L 1
 		
