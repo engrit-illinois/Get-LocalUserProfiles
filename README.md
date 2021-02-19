@@ -139,4 +139,4 @@ Sources on the issue:
 - https://powershell.org/forums/topic/incorrect-information-gets-recorded-in-win32_userprofile-lastusetime-obj/
 
 # Notes
-- By mseng3
+- By mseng3. See my other projects here: https://github.com/mmseng/code-compendium.
