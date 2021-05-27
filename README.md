@@ -10,9 +10,8 @@ See below for more detailed [context](#context) and caveats.
 
 # Usage
 
-1. Download `Get-LocalUserProfiles.psm1`
-2. Import it as a module: `Import-Module "c:\path\to\Get-LocalUserProfiles.psm1"`
-3. Run it using the parameters documented below
+1. Download `Get-LocalUserProfiles.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Get-LocalUserProfiles\Get-LocalUserProfiles.psm1`.
+2. Run it using the parameters documented below
 - e.g. `Get-LocalUserProfiles -Computers "gelib-4c-*" -Log -Csv -PrintProfilesInRealtime`
 
 # Parameters
