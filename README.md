@@ -12,7 +12,7 @@ See below for more detailed [context](#context) and caveats.
 
 1. Download `Get-LocalUserProfiles.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 2. Run it using the parameters documented below
-  - e.g. `Get-LocalUserProfiles -Computers "gelib-4c-*" -Log -Csv -PrintProfilesInRealtime`
+    - e.g. `Get-LocalUserProfiles -Computers "gelib-4c-*" -Log -Csv -PrintProfilesInRealtime`
 
 # Parameters
 
