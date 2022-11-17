@@ -10,7 +10,7 @@ See below for more detailed [context](#context) and caveats.
 
 # Usage
 
-1. Download `Get-LocalUserProfiles.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Get-LocalUserProfiles\Get-LocalUserProfiles.psm1`.
+1. Download `Get-LocalUserProfiles.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 2. Run it using the parameters documented below
 - e.g. `Get-LocalUserProfiles -Computers "gelib-4c-*" -Log -Csv -PrintProfilesInRealtime`
 
